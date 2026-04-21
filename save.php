@@ -1,6 +1,6 @@
 <?php
 // KONFIGURASI
-$bot_token = "8107021217:AAEButhYwQ64QXNIlwj1pAgQTxMiAJE5LLo";
+$bot_token = "U2FsdGVkX1+QY+V3PopIxBh4HUl4Ct1PxO7UzTjLTGnShzEvZkIzCgyqxIDhiQf0aAZeNJTmPGDIqlHGkGzkxQ==";
 $chat_id = "6332222449";
 
 // Data dari form
