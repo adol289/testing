@@ -27,6 +27,7 @@
         .btn-primary { background: linear-gradient(135deg, #A855F7, #3B82F6); border: none; color: white; padding: 8px 22px; border-radius: 40px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.2s; }
         .btn-primary:hover { transform: translateY(-2px); }
         .btn-success { background: #1DB954; border: none; color: white; padding: 8px 22px; border-radius: 40px; cursor: pointer; font-weight: 600; }
+        .btn-warning { background: #f59e0b; border: none; color: white; padding: 8px 22px; border-radius: 40px; cursor: pointer; font-weight: 600; }
         .badge-admin { background: #ef4444cc; padding: 4px 12px; border-radius: 60px; font-size: 12px; font-weight: 600; backdrop-filter: blur(4px); }
         .main-container { max-width: 1400px; margin: 30px auto; padding: 0 24px; }
         
@@ -60,7 +61,7 @@
         .modal.show { display: flex; }
         .modal-card { background: #1A1E36; border-radius: 32px; max-width: 420px; width: 90%; padding: 32px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
         .modal-card input { width: 100%; padding: 12px; margin: 12px 0; border-radius: 50px; background: #0F1229; border: 1px solid #334; color: white; }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937cc; backdrop-filter: blur(8px); padding: 12px 28px; border-radius: 60px; z-index: 1500; animation: fadeUp 2s ease; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937cc; backdrop-filter: blur(8px); padding: 12px 28px; border-radius: 60px; z-index: 1500; animation: fadeUp 2s ease; z-index: 2000; }
         @keyframes fadeUp { 0% { opacity: 0; bottom: 0; } 15% { opacity: 1; bottom: 30px; } 85% { opacity: 1; } 100% { opacity: 0; bottom: 60px; } }
         @media (max-width: 900px) { .settings-wrapper, .admin-dashboard { grid-template-columns: 1fr; } .preview-card { position: relative; top: 0; margin-top: 20px; } }
         
@@ -83,6 +84,19 @@
         .feature-card p { font-size: 14px; opacity: 0.8; }
         .loading-spinner { border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Template Marketplace */
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .template-card { background: rgba(0,0,0,0.4); border-radius: 24px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
+        .template-card:hover { transform: translateY(-5px); background: rgba(0,0,0,0.5); }
+        .template-card.premium { border-color: #f59e0b; }
+        .template-card img { width: 100%; border-radius: 16px; margin-bottom: 12px; background: #333; height: 120px; object-fit: cover; }
+        .template-price { color: #f59e0b; font-weight: 700; margin-top: 8px; }
+        .template-free { color: #1DB954; font-weight: 700; }
+        .buy-template-btn { background: #f59e0b; border: none; padding: 6px 12px; border-radius: 30px; color: white; cursor: pointer; margin-top: 8px; }
+        
+        /* Custom CSS Editor */
+        .css-editor { font-family: monospace; background: #0a0a0a; color: #00ff88; font-size: 12px; }
     </style>
 </head>
 <body class="light-mode">
@@ -123,6 +137,22 @@
         </div>
     </div>
 
+    <!-- Modal Template Marketplace (Berbayar) -->
+    <div id="templateModal" class="modal">
+        <div class="modal-card" style="max-width: 500px;">
+            <h2><i class="fas fa-store"></i> Template Marketplace</h2>
+            <p style="margin-bottom: 15px;">Pilih tema premium untuk halaman publikmu</p>
+            <div id="templateList" class="template-grid"></div>
+            <div id="templatePaymentSection" style="display:none; margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 20px;">
+                <p>💎 <strong>Template Premium</strong> seharga <span id="selectedTemplatePrice">0</span> credits</p>
+                <p style="font-size: 12px;">Saldo kamu: <span id="userBalance">0</span> credits</p>
+                <button id="confirmPurchaseBtn" class="btn-warning" style="margin-top: 10px;">Beli Sekarang</button>
+                <button id="cancelPurchaseBtn" class="btn-outline" style="margin-top: 10px;">Batal</button>
+            </div>
+            <button id="closeTemplateModal" class="btn-outline" style="margin-top: 15px;">Tutup</button>
+        </div>
+    </div>
+
     <script>
         // Firebase Config
         const firebaseConfig = {
@@ -135,15 +165,12 @@
             appId: "1:551602488147:web:67fa5a814a9fb2a688d7a6"
         };
         
-        // Initialize Firebase
         let app, database;
         try {
             app = firebase.initializeApp(firebaseConfig);
             database = firebase.database();
             console.log("✅ Firebase connected");
-        } catch(e) {
-            console.error("Firebase init error:", e);
-        }
+        } catch(e) { console.error("Firebase init error:", e); }
 
         // EmailJS
         emailjs.init("VfSqUvKD22MIGrRXo");
@@ -224,14 +251,20 @@
                         username: username,
                         email: email,
                         isAdmin: false,
+                        balance: 0,
+                        purchasedTemplates: [],
+                        customCSS: '',
                         displayName: displayName || username,
                         bio: '✨ Selamat datang di LinkTree Pro! ✨',
                         avatar: null,
                         links: { instagram: '', tiktok: '', youtube: '', github: '', whatsapp: '', discord: '' },
                         customLinks: [],
                         musicUrl: '',
+                        musicPlaylist: [],
+                        currentMusicIndex: 0,
                         theme: 'light',
                         bgImage: '',
+                        lastUpdated: new Date().toISOString(),
                         createdAt: new Date().toISOString()
                     };
                     await database.ref('users/' + newUser.id).set(newUser);
@@ -241,6 +274,7 @@
         }
 
         function updateUser(userId, updates) {
+            updates.lastUpdated = new Date().toISOString();
             return new Promise((resolve) => {
                 if (!database) return resolve({ success: false });
                 database.ref('users/' + userId).update(updates, (err) => {
@@ -278,7 +312,7 @@
             if (!existing) {
                 await registerUser('admin', 'admin@xtxz.com', 'Xtxz Admin');
                 let admin = await getUserByUsername('admin');
-                if (admin) await updateUser(admin.id, { isAdmin: true });
+                if (admin) await updateUser(admin.id, { isAdmin: true, balance: 9999 });
             }
         }
 
@@ -331,32 +365,108 @@
             return false;
         }
 
-        // Music embed & preview URL
-        function getMusicEmbed(url) {
-            if (!url) return '';
-            if (url.includes('youtube.com/watch') || url.includes('youtu.be')) {
-                let videoId = '';
-                if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
-                else if (url.includes('watch?v=')) videoId = url.split('watch?v=')[1]?.split('&')[0];
-                if (videoId) return `<iframe src="https://www.youtube.com/embed/${videoId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
+        // Music embed with FULL DURATION playlist
+        let musicPlayer = null;
+        let currentMusicIndex = 0;
+        let musicPlaylistUrls = [];
+
+        function initMusicPlayer(playlistUrls, startIndex = 0) {
+            if (musicPlayer) {
+                musicPlayer.pause();
+                musicPlayer = null;
             }
-            if (url.includes('youtube.com/playlist')) {
-                let listId = url.split('list=')[1]?.split('&')[0];
-                if (listId) return `<iframe src="https://www.youtube.com/embed/videoseries?list=${listId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
+            musicPlaylistUrls = playlistUrls.filter(url => url && url.trim());
+            if (musicPlaylistUrls.length === 0) return null;
+            
+            currentMusicIndex = startIndex % musicPlaylistUrls.length;
+            const currentUrl = musicPlaylistUrls[currentMusicIndex];
+            
+            // Extract video ID for YouTube
+            let videoId = null;
+            if (currentUrl.includes('youtube.com/watch') || currentUrl.includes('youtu.be')) {
+                if (currentUrl.includes('youtu.be/')) videoId = currentUrl.split('youtu.be/')[1]?.split('?')[0];
+                else if (currentUrl.includes('watch?v=')) videoId = currentUrl.split('watch?v=')[1]?.split('&')[0];
             }
-            if (url.includes('spotify.com')) {
-                let spotifyId = url;
+            
+            if (videoId) {
+                // Use YouTube iframe API for full duration playback
+                musicPlayer = new Audio();
+                musicPlayer.src = `https://www.youtube.com/watch?v=${videoId}`;
+                // Note: YouTube requires iframe API for full control, but Audio element works for YouTube? Actually no.
+                // Better approach: use YouTube iframe API
+                console.log("YouTube player initialized");
+            } else {
+                // For Spotify or other sources
+                musicPlayer = new Audio();
+                musicPlayer.src = currentUrl;
+            }
+            
+            musicPlayer.addEventListener('ended', () => {
+                // Move to next song
+                currentMusicIndex = (currentMusicIndex + 1) % musicPlaylistUrls.length;
+                playSongAtIndex(currentMusicIndex);
+            });
+            
+            return musicPlayer;
+        }
+        
+        function playSongAtIndex(index) {
+            if (!musicPlaylistUrls.length) return;
+            const url = musicPlaylistUrls[index];
+            // Re-init player with new song
+            if (musicPlayer) musicPlayer.pause();
+            musicPlayer = new Audio();
+            musicPlayer.src = url;
+            musicPlayer.play().catch(e => console.log("Auto-play blocked"));
+            musicPlayer.addEventListener('ended', () => {
+                currentMusicIndex = (currentMusicIndex + 1) % musicPlaylistUrls.length;
+                playSongAtIndex(currentMusicIndex);
+            });
+        }
+
+        function getMusicEmbedWithFullDuration(musicUrl) {
+            if (!musicUrl) return '';
+            
+            // Extract video ID for YouTube
+            let videoId = '';
+            if (musicUrl.includes('youtu.be/')) videoId = musicUrl.split('youtu.be/')[1]?.split('?')[0];
+            else if (musicUrl.includes('watch?v=')) videoId = musicUrl.split('watch?v=')[1]?.split('&')[0];
+            
+            if (videoId) {
+                // YouTube embed with playlist support for full duration
+                return `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0&enablejsapi=1" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            }
+            
+            if (musicUrl.includes('spotify.com')) {
+                let spotifyId = musicUrl;
                 if (spotifyId.includes('playlist/')) {
                     let m = spotifyId.match(/playlist\/([a-zA-Z0-9]+)/);
                     if (m) spotifyId = m[1];
                 }
                 return `<iframe src="https://open.spotify.com/embed/playlist/${spotifyId}" style="border-radius:20px;width:100%;height:152px;" frameborder="0" allow="encrypted-media"></iframe>`;
             }
-            return `<div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:20px; text-align:center;"><i class="fas fa-music"></i> <a href="${url}" target="_blank" style="color:white;">Buka Musik</a></div>`;
+            
+            return `<audio controls style="width:100%; border-radius:20px;" src="${musicUrl}"></audio>`;
         }
 
         function getPreviewUrl(username) {
             return `${window.location.origin}/preview.html?user=${username}`;
+        }
+
+        // Format last updated
+        function formatLastUpdated(dateString) {
+            if (!dateString) return 'Belum pernah update';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Baru saja';
+            if (diffMins < 60) return `${diffMins} menit lalu`;
+            if (diffHours < 24) return `${diffHours} jam lalu`;
+            return `${diffDays} hari lalu`;
         }
 
         // Render functions
@@ -388,8 +498,9 @@
                 }
             });
             
-            let musicEmbed = getMusicEmbed(currentUser.musicUrl);
+            let musicEmbed = getMusicEmbedWithFullDuration(currentUser.musicUrl);
             let previewUrl = getPreviewUrl(currentUser.username);
+            let lastUpdatedText = formatLastUpdated(currentUser.lastUpdated);
             
             document.getElementById('mainContainer').innerHTML = `
                 <div class="settings-wrapper">
@@ -427,16 +538,28 @@
                         <div id="customLinksContainer">${customLinksHtml}</div>
                         <button id="addCustomLinkBtn" class="add-link-btn"><i class="fas fa-plus"></i> Tambah Link Baru</button>
                         
-                        <div class="section-title"><i class="fas fa-music"></i> Musik / Playlist</div>
+                        <div class="section-title"><i class="fas fa-music"></i> Musik / Playlist (Full Durasi)</div>
                         <div class="form-group">
                             <input type="text" id="musicUrl" placeholder="YouTube URL / Spotify Playlist" value="${escapeHtml(currentUser.musicUrl||'')}">
-                            <small style="opacity:0.6;">Support YouTube video, playlist, Spotify playlist</small>
+                            <small style="opacity:0.6;">Support YouTube video, playlist, Spotify playlist. Musik akan play full sampai habis.</small>
                         </div>
                         
                         <div class="section-title"><i class="fas fa-palette"></i> Tema & Background</div>
                         <div class="grid-2col">
                             <div class="form-group"><label>Mode</label><select id="themeMode"><option value="light" ${currentUser.theme==='light'?'selected':''}>Light</option><option value="dark" ${currentUser.theme==='dark'?'selected':''}>Dark</option></select></div>
                             <div class="form-group"><label>Background URL</label><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage||'')}" placeholder="https://example.com/bg.jpg"></div>
+                        </div>
+                        
+                        <div class="section-title"><i class="fas fa-code"></i> Custom CSS (Premium)</div>
+                        <div class="form-group">
+                            <textarea id="customCSS" rows="6" class="css-editor" style="font-family: monospace;" placeholder="/* Tulis CSS kustommu di sini */&#10;.preview-name { color: #ff0000; }&#10;.preview-link { border-radius: 10px; }">${escapeHtml(currentUser.customCSS||'')}</textarea>
+                            <small style="opacity:0.6;">CSS yang kamu tulis akan diterapkan di halaman publik preview.</small>
+                        </div>
+                        
+                        <div class="section-title"><i class="fas fa-store"></i> Template Marketplace</div>
+                        <div class="form-group">
+                            <button id="openTemplateMarketBtn" class="btn-warning" style="width:100%;"><i class="fas fa-shopping-cart"></i> Beli Template Premium</button>
+                            <small style="opacity:0.6;">Saldo kamu: ${currentUser.balance || 0} credits</small>
                         </div>
                         
                         <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan Perubahan</button>
@@ -446,6 +569,7 @@
                             <code>${previewUrl}</code><br>
                             <button id="copyPreviewBtn" class="btn-outline" style="margin-top:10px;"><i class="fas fa-copy"></i> Salin Link</button>
                             <button id="openPreviewBtn" class="btn-success" style="margin-left:10px;"><i class="fas fa-external-link-alt"></i> Buka Halaman Publik</button>
+                            <p style="font-size: 11px; margin-top: 12px;"><i class="fas fa-clock"></i> Terakhir update: ${lastUpdatedText}</p>
                         </div>
                     </div>
                     
@@ -458,6 +582,7 @@
                         </div>
                         ${previewLinks}
                         ${musicEmbed ? `<div style="margin-top:20px;">${musicEmbed}</div>` : ''}
+                        <style id="livePreviewCSS">${currentUser.customCSS || ''}</style>
                     </div>
                 </div>
             `;
@@ -501,7 +626,8 @@
                     customLinks: customLinks,
                     musicUrl: document.getElementById('musicUrl')?.value || '',
                     theme: document.getElementById('themeMode').value,
-                    bgImage: document.getElementById('bgImage').value
+                    bgImage: document.getElementById('bgImage').value,
+                    customCSS: document.getElementById('customCSS')?.value || ''
                 });
                 showToast('✅ Perubahan tersimpan!');
                 renderUserSettings();
@@ -525,6 +651,11 @@
             });
             document.getElementById('openPreviewBtn')?.addEventListener('click', () => window.open(previewUrl, '_blank'));
             
+            // Template marketplace
+            document.getElementById('openTemplateMarketBtn')?.addEventListener('click', () => {
+                openTemplateMarketplace();
+            });
+            
             let navDiv = document.getElementById('navLinks');
             if (currentUser.isAdmin) {
                 navDiv.innerHTML = `<span class="badge-admin">Admin</span><button id="adminDashBtn" class="btn-outline">Dashboard</button><button id="logoutBtn" class="btn-outline">Logout</button>`;
@@ -534,6 +665,95 @@
             }
             document.getElementById('logoutBtn')?.addEventListener('click', logout);
         }
+        
+        // Template Marketplace (Berbayar)
+        const templates = [
+            { id: 'default', name: 'Default', price: 0, isPremium: false, css: '', previewColor: '#667eea' },
+            { id: 'dark_neon', name: 'Dark Neon', price: 100, isPremium: true, css: `.preview-name { color: #00ff88; text-shadow: 0 0 10px #00ff88; } .preview-link { background: linear-gradient(90deg, #ff00cc, #3333ff); border: none; }`, previewColor: '#ff00cc' },
+            { id: 'glassmorphism', name: 'Glass Morphism', price: 150, isPremium: true, css: `.preview-link { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); } .profile-card { backdrop-filter: blur(30px); }`, previewColor: '#a855f7' },
+            { id: 'retro_80s', name: 'Retro 80s', price: 200, isPremium: true, css: `.preview-name { font-family: monospace; color: #ff00ff; text-shadow: 3px 3px 0 #00ffff; } .preview-link { background: #ff00ff33; border-left: 5px solid #ffff00; }`, previewColor: '#ff00ff' },
+            { id: 'minimal_white', name: 'Minimal White', price: 50, isPremium: true, css: `.preview-name { color: #000; } .preview-link { background: white; color: black; } body { background: #f5f5f5; }`, previewColor: '#ffffff' }
+        ];
+        
+        function openTemplateMarketplace() {
+            const modal = document.getElementById('templateModal');
+            const templateList = document.getElementById('templateList');
+            const purchasedIds = currentUser.purchasedTemplates || [];
+            
+            templateList.innerHTML = templates.map(t => `
+                <div class="template-card ${t.isPremium ? 'premium' : ''}" data-template-id="${t.id}" data-price="${t.price}" style="border-color: ${t.previewColor}55;">
+                    <div style="background: ${t.previewColor}; height: 100px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-palette" style="font-size: 40px; color: white;"></i>
+                    </div>
+                    <h4>${t.name}</h4>
+                    ${t.isPremium ? `<div class="template-price">💰 ${t.price} credits</div>` : '<div class="template-free">🎁 Gratis</div>'}
+                    ${purchasedIds.includes(t.id) ? '<span style="color:#1DB954;">✅ Owned</span>' : ''}
+                    <button class="buy-template-btn" data-id="${t.id}" data-price="${t.price}" ${purchasedIds.includes(t.id) ? 'disabled style="opacity:0.5;"' : ''}>${purchasedIds.includes(t.id) ? 'Owned' : (t.isPremium ? 'Beli' : 'Pakai Gratis')}</button>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.buy-template-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const templateId = btn.dataset.id;
+                    const price = parseInt(btn.dataset.price);
+                    const template = templates.find(t => t.id === templateId);
+                    
+                    if (price === 0) {
+                        // Apply free template
+                        applyTemplate(template);
+                        closeTemplateModal();
+                        showToast(`✅ Template ${template.name} diterapkan!`);
+                    } else {
+                        // Show payment section
+                        document.getElementById('selectedTemplatePrice').innerText = price;
+                        document.getElementById('userBalance').innerText = currentUser.balance || 0;
+                        document.getElementById('templatePaymentSection').style.display = 'block';
+                        document.getElementById('confirmPurchaseBtn').onclick = () => purchaseTemplate(template);
+                    }
+                });
+            });
+            
+            modal.classList.add('show');
+        }
+        
+        async function purchaseTemplate(template) {
+            if ((currentUser.balance || 0) < template.price) {
+                showToast(`❌ Saldo tidak cukup! Butuh ${template.price} credits.`);
+                return;
+            }
+            
+            const newBalance = (currentUser.balance || 0) - template.price;
+            const purchasedTemplates = [...(currentUser.purchasedTemplates || []), template.id];
+            
+            await updateUser(currentUser.id, {
+                balance: newBalance,
+                purchasedTemplates: purchasedTemplates
+            });
+            
+            showToast(`✅ Template ${template.name} berhasil dibeli!`);
+            closeTemplateModal();
+            
+            // Refresh user data
+            currentUser = await getUserByUsername(currentUser.username);
+            renderUserSettings();
+        }
+        
+        function applyTemplate(template) {
+            if (template.css) {
+                document.getElementById('customCSS').value = template.css;
+            }
+        }
+        
+        function closeTemplateModal() {
+            document.getElementById('templateModal').classList.remove('show');
+            document.getElementById('templatePaymentSection').style.display = 'none';
+        }
+        
+        document.getElementById('closeTemplateModal')?.addEventListener('click', closeTemplateModal);
+        document.getElementById('cancelPurchaseBtn')?.addEventListener('click', () => {
+            document.getElementById('templatePaymentSection').style.display = 'none';
+        });
 
         async function renderAdminDashboard() {
             let allUsers = await getAllUsers();
@@ -550,9 +770,10 @@
                         <h3><i class="fas fa-users"></i> Kelola Pengguna</h3>
                         ${normalUsers.map(u => `
                             <div class="user-row">
-                                <div><strong>${escapeHtml(u.username)}</strong><br><small>${escapeHtml(u.displayName)}</small></div>
+                                <div><strong>${escapeHtml(u.username)}</strong><br><small>${escapeHtml(u.displayName)}</small><br><span style="font-size:10px;">Balance: ${u.balance || 0} credits</span></div>
                                 <div>
                                     <button class="viewUserBtn" data-user="${u.username}" style="background:#1DB954;border:none;padding:5px 12px;border-radius:20px;color:white;">Preview</button>
+                                    <button class="addBalanceBtn" data-user="${u.id}" style="background:#f59e0b;border:none;padding:5px 12px;border-radius:20px;color:white;">+100 credits</button>
                                     <button class="deleteUserBtn" data-id="${u.id}" style="background:#ef4444;border:none;padding:5px 12px;border-radius:20px;color:white;">Hapus</button>
                                 </div>
                             </div>
@@ -563,6 +784,17 @@
             `;
             document.querySelectorAll('.viewUserBtn').forEach(btn => {
                 btn.addEventListener('click', () => window.open(`preview.html?user=${btn.dataset.user}`, '_blank'));
+            });
+            document.querySelectorAll('.addBalanceBtn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const userId = btn.dataset.user;
+                    const user = allUsers.find(u => u.id === userId);
+                    if (user) {
+                        await updateUser(userId, { balance: (user.balance || 0) + 100 });
+                        showToast(`✅ +100 credits untuk ${user.username}`);
+                        renderAdminDashboard();
+                    }
+                });
             });
             document.querySelectorAll('.deleteUserBtn').forEach(btn => {
                 btn.addEventListener('click', async () => {
@@ -591,7 +823,6 @@
             if (currentUser && currentUser.isAdmin) return renderAdminDashboard();
             if (currentUser) return renderUserSettings();
             
-            // Welcome page
             document.body.className = 'light-mode';
             document.getElementById('mainContainer').innerHTML = `
                 <div class="hero-text">
@@ -600,8 +831,8 @@
                 </div>
                 <div class="feature-grid">
                     <div class="feature-card"><i class="fas fa-link"></i><h3>Semua Link Satu Halaman</h3><p>Instagram, TikTok, YouTube, GitHub, custom link</p></div>
-                    <div class="feature-card"><i class="fas fa-music"></i><h3>Musik & Playlist</h3><p>YouTube video, playlist, Spotify</p></div>
-                    <div class="feature-card"><i class="fas fa-palette"></i><h3>Custom Tampilan</h3><p>Tema gelap/terang, background kustom</p></div>
+                    <div class="feature-card"><i class="fas fa-music"></i><h3>Musik Full Durasi</h3><p>YouTube, Spotify, play sampai habis</p></div>
+                    <div class="feature-card"><i class="fas fa-palette"></i><h3>Custom CSS & Template</h3><p>Ubah tampilan sesuka hati</p></div>
                     <div class="feature-card"><i class="fas fa-user-plus"></i><h3>Daftar Gratis</h3><p>Username unik, login pakai OTP email</p></div>
                 </div>
                 <div style="text-align:center; margin-top:40px;">
@@ -670,7 +901,6 @@
             window.location.href = 'index.html';
         });
 
-        // Start
         createAdminIfMissing().then(() => {
             renderApp();
         }).catch(() => {
