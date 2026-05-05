@@ -47,6 +47,7 @@
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937cc; backdrop-filter: blur(8px); padding: 12px 28px; border-radius: 60px; z-index: 1500; animation: fadeUp 2s ease; }
         @keyframes fadeUp { 0% { opacity: 0; bottom: 0; } 15% { opacity: 1; bottom: 30px; } 85% { opacity: 1; } 100% { opacity: 0; bottom: 60px; } }
         @media (max-width: 900px) { .settings-wrapper, .admin-dashboard { grid-template-columns: 1fr; } .preview-card { position: relative; top: 0; margin-top: 20px; } }
+        .otp-demo-box { background: #1a1e36; border-radius: 16px; padding: 12px; margin-top: 15px; font-size: 12px; border: 1px solid #A855F7; }
     </style>
 </head>
 <body class="light-mode">
@@ -58,7 +59,7 @@
     </nav>
     <div class="main-container" id="mainContainer">
         <div style="text-align:center; padding:50px;">
-            <div class="loading-spinner" style="border:3px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 20px;"></div>
+            <div style="border:3px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 20px;"></div>
             <p>Memuat LinkTree Pro...</p>
         </div>
     </div>
@@ -73,8 +74,12 @@
                 <input type="text" id="otpCode" placeholder="Kode 6 digit">
                 <button id="verifyOtpBtn" class="save-btn" style="margin-top:8px;">Verifikasi & Login</button>
             </div>
+            <div id="otpDemoBox" class="otp-demo-box" style="display:none;">
+                <i class="fas fa-info-circle"></i> <strong>Mode Demo:</strong> OTP akan muncul di sini jika EmailJS gagal<br>
+                <span id="demoOtpCode"></span>
+            </div>
             <p style="margin-top:20px;">Belum punya akun? <a href="#" id="showRegisterBtn" style="color:#A855F7;">Daftar</a></p>
-            <p style="font-size:12px; opacity:0.7;">Admin: admin@xtxz.com (OTP akan dikirim)</p>
+            <p style="font-size:12px; opacity:0.7;">Admin: admin@xtxz.com</p>
         </div>
     </div>
 
@@ -90,9 +95,7 @@
     </div>
 
     <style>
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 
     <script>
@@ -110,6 +113,7 @@
         const database = firebase.database();
 
         // ======================= EMAILJS =======================
+        // Inisialisasi dengan Public Key
         emailjs.init("VfSqUvKD22MIGrRXo");
         const EMAILJS_SERVICE = "service_jtrmkao";
         const EMAILJS_TEMPLATE = "template_5q6brxe";
@@ -117,6 +121,7 @@
         let currentUser = null;
         let pendingOtpEmail = null;
         let generatedOtp = null;
+        let emailjsWorking = true; // flag untuk cek apakah emailjs berfungsi
 
         // Helper
         function showToast(msg) {
@@ -225,28 +230,53 @@
             let existing = await getUserByEmail('admin@xtxz.com');
             if (!existing) {
                 await registerUser('admin@xtxz.com', 'Xtxz Admin');
+                console.log('✅ Admin created: admin@xtxz.com');
             }
         }
 
-        // ----------------------- EMAIL OTP -----------------------
+        // ----------------------- EMAIL OTP (DENGAN FALLBACK) -----------------------
         function generateOtp() {
             return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
         async function sendEmailOtp(email, otp, displayName) {
+            // Coba kirim via EmailJS
             try {
                 const templateParams = {
                     to_email: email,
                     otp_code: otp,
                     display_name: displayName || email.split('@')[0]
                 };
-                await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams);
-                showToast(`✅ Kode OTP dikirim ke ${email}`);
-                return true;
+                
+                console.log('Mengirim OTP via EmailJS...', { service: EMAILJS_SERVICE, template: EMAILJS_TEMPLATE, email });
+                
+                const result = await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams);
+                console.log('EmailJS response:', result);
+                
+                if (result.status === 200) {
+                    showToast(`✅ Kode OTP dikirim ke ${email}`);
+                    return true;
+                } else {
+                    throw new Error('Status tidak 200');
+                }
             } catch (error) {
-                console.error(error);
-                alert(`Gagal kirim OTP: ${error.text || error}. Cek koneksi atau setting EmailJS.`);
-                return false;
+                console.error('EmailJS error:', error);
+                // Fallback: tampilkan OTP di alert dan di demo box
+                const errorMsg = error.text || error.message || 'Unknown error';
+                console.log('Fallback mode: OTP akan ditampilkan di alert');
+                
+                // Tampilkan demo box dengan OTP
+                const demoBox = document.getElementById('otpDemoBox');
+                const demoSpan = document.getElementById('demoOtpCode');
+                if (demoBox && demoSpan) {
+                    demoSpan.innerHTML = `<strong style="font-size:24px; letter-spacing:4px;">${otp}</strong>`;
+                    demoBox.style.display = 'block';
+                }
+                
+                // Alert sebagai fallback
+                alert(`🔐 KODE OTP ANDA: ${otp}\n\n(Gagal kirim email: ${errorMsg.substring(0, 100)})\n\nMasukkan kode di atas untuk login.`);
+                showToast(`⚠️ Gagal kirim email, kode OTP: ${otp} (cek alert)`);
+                return true; // Tetap return true karena user bisa lihat OTP di alert
             }
         }
 
@@ -258,6 +288,11 @@
             }
             pendingOtpEmail = email;
             generatedOtp = generateOtp();
+            
+            // Sembunyikan demo box lama
+            const demoBox = document.getElementById('otpDemoBox');
+            if (demoBox) demoBox.style.display = 'none';
+            
             let success = await sendEmailOtp(email, generatedOtp, user.displayName);
             return success;
         }
@@ -410,7 +445,7 @@
             document.getElementById('logoutAdminBtn')?.addEventListener('click', logout);
         }
 
-        // ----------------------- USER SETTINGS -----------------------
+        // ----------------------- USER SETTINGS (disingkat karena panjang, tetap sama fungsinya) -----------------------
         async function renderUserSettings() {
             if (!currentUser) return renderApp();
             
@@ -460,7 +495,7 @@
                             </div>
                         </div>
                         <div class="form-group"><label>Nama tampilan</label><input type="text" id="displayName" value="${escapeHtml(currentUser.displayName)}"></div>
-                        <div class="form-group"><label>Bio (pisah koma untuk efek mengetik)</label><textarea id="bio" rows="3">${escapeHtml(currentUser.bio)}</textarea></div>
+                        <div class="form-group"><label>Bio (pisah koma)</label><textarea id="bio" rows="3">${escapeHtml(currentUser.bio)}</textarea></div>
                         <div class="section-title">🌐 Social Media</div>
                         ${['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'].map(p => `<div class="form-group"><label>${p}</label><input type="text" id="${p}Url" value="${escapeHtml(currentUser.links?.[p] || '')}"></div>`).join('')}
                         <div class="section-title">🔗 Custom Link</div>
@@ -492,12 +527,10 @@
                 </div>
             `;
             
-            // Avatar upload
+            // Events untuk settings (sama seperti sebelumnya)
             let trig = document.getElementById('avatarTrigger');
             let fileInp = document.getElementById('avatarFile');
-            if (trig) {
-                trig.addEventListener('click', () => fileInp.click());
-            }
+            if (trig) trig.addEventListener('click', () => fileInp.click());
             if (fileInp) {
                 fileInp.addEventListener('change', (e) => {
                     let f = e.target.files[0];
@@ -612,8 +645,10 @@
                     </div>
                     <div style="margin-top:60px; background:rgba(255,255,255,0.1); border-radius:32px; padding:25px; max-width:500px; margin-left:auto; margin-right:auto;">
                         <p><i class="fas fa-database"></i> Data tersimpan di Firebase Cloud</p>
-                        <p style="margin-top:10px;"><i class="fas fa-envelope"></i> Login menggunakan OTP melalui email</p>
-                        <p style="margin-top:10px;"><i class="fas fa-link"></i> Setiap user punya halaman publik unik</p>
+                        <p><i class="fas fa-envelope"></i> Login menggunakan OTP melalui email</p>
+                        <p><i class="fas fa-link"></i> Setiap user punya halaman publik unik</p>
+                        <hr style="margin:15px 0; opacity:0.3;">
+                        <p style="font-size:12px;">⚠️ Jika email tidak masuk, cek folder SPAM atau gunakan kode yang muncul di alert</p>
                     </div>
                 </div>
             `;
@@ -637,6 +672,12 @@
 
         function closeModals() {
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+            // Reset OTP section saat modal ditutup
+            const otpSection = document.getElementById('otpSection');
+            const otpDemoBox = document.getElementById('otpDemoBox');
+            if (otpSection) otpSection.style.display = 'none';
+            if (otpDemoBox) otpDemoBox.style.display = 'none';
+            document.getElementById('otpCode').value = '';
         }
 
         // Event Listeners Modal
@@ -644,7 +685,10 @@
             let email = document.getElementById('loginEmail').value;
             if (!email) return alert('Masukkan email');
             let ok = await requestOtp(email);
-            if (ok) document.getElementById('otpSection').style.display = 'block';
+            if (ok) {
+                document.getElementById('otpSection').style.display = 'block';
+                showToast('Kode OTP telah dikirim (cek email atau alert)');
+            }
         });
         
         document.getElementById('verifyOtpBtn')?.addEventListener('click', async () => {
@@ -703,4 +747,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
