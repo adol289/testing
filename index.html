@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LinkTree - Login & Buat LinkTree Kamu</title>
+    <title>LinkTree Generator - Buat LinkTree Gratis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -16,8 +16,25 @@
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Light Mode Default */
+        body.light-mode {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
+        }
+
+        body.custom-bg {
+            background: var(--custom-bg) !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
         }
 
         /* Navbar */
@@ -26,6 +43,9 @@
             backdrop-filter: blur(10px);
             padding: 15px 20px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .nav-container {
@@ -41,6 +61,7 @@
         .logo {
             font-size: 24px;
             font-weight: 700;
+            cursor: pointer;
         }
 
         .logo i {
@@ -71,6 +92,7 @@
             transition: 0.3s;
             text-decoration: none;
             display: inline-block;
+            font-size: 14px;
         }
 
         .btn-outline {
@@ -89,8 +111,9 @@
             color: white;
         }
 
-        .nav-links button:hover {
-            transform: translateY(-2px);
+        .btn-success {
+            background: #1DB954;
+            color: white;
         }
 
         /* Main Container */
@@ -98,6 +121,7 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 30px 20px;
+            min-height: calc(100vh - 80px);
         }
 
         /* Welcome Section */
@@ -129,8 +153,8 @@
             font-size: 16px;
         }
 
-        /* Dashboard User */
-        .dashboard {
+        /* Settings Page Layout */
+        .settings-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
@@ -148,7 +172,7 @@
 
         .preview-section {
             position: sticky;
-            top: 20px;
+            top: 100px;
             max-height: 85vh;
             overflow-y: auto;
         }
@@ -193,8 +217,8 @@
             border-bottom: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* LinkTree Preview */
-        .linktree-preview {
+        /* LinkTree Preview Card */
+        .linktree-preview-card {
             max-width: 400px;
             margin: 0 auto;
         }
@@ -272,6 +296,32 @@
             margin-top: 20px;
         }
 
+        .url-info {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .url-info code {
+            background: rgba(0,0,0,0.5);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .copy-url-btn {
+            background: #1DB954;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -310,63 +360,25 @@
             color: white;
         }
 
-        /* Admin Panel */
-        .admin-panel {
-            background: rgba(0,0,0,0.4);
-            border-radius: 20px;
-            padding: 25px;
-        }
-
-        .user-list {
-            display: grid;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .user-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .user-card button {
-            padding: 5px 15px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .view-user-linktree {
-            background: #1DB954;
-            color: white;
-        }
-
-        .delete-user {
-            background: rgba(255,0,0,0.5);
-            color: white;
-        }
-
         @media (max-width: 900px) {
-            .dashboard {
+            .settings-layout {
                 grid-template-columns: 1fr;
+            }
+            .preview-section {
+                position: static;
             }
         }
     </style>
 </head>
-<body>
+<body class="light-mode">
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">
+            <div class="logo" id="homeLogo">
                 <i class="fas fa-link"></i>
                 <span>LinkTree<span>Generator</span></span>
             </div>
             <div class="nav-links" id="navLinks">
-                <!-- Akan diisi berdasarkan login status -->
+                <!-- Akan diisi JavaScript -->
             </div>
         </div>
     </nav>
@@ -383,7 +395,7 @@
             <input type="password" id="loginPassword" placeholder="Password">
             <button id="doLoginBtn" class="save-btn" style="margin-top: 10px;">Login</button>
             <p style="margin-top: 15px;">Belum punya akun? <a href="#" id="showRegisterBtn" style="color: #667eea;">Daftar</a></p>
-            <p style="margin-top: 10px; font-size: 12px;">Demo akun admin: username <strong>admin</strong> password <strong>admin123</strong></p>
+            <p style="margin-top: 10px; font-size: 12px;">Demo akun: username <strong>admin</strong> password <strong>admin123</strong></p>
         </div>
     </div>
 
@@ -391,7 +403,7 @@
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <h2><i class="fas fa-user-plus"></i> Daftar</h2>
-            <input type="text" id="regUsername" placeholder="Username">
+            <input type="text" id="regUsername" placeholder="Username (akan jadi URL kamu)">
             <input type="password" id="regPassword" placeholder="Password">
             <input type="text" id="regDisplayName" placeholder="Nama Tampilan">
             <button id="doRegisterBtn" class="save-btn" style="margin-top: 10px;">Daftar</button>
@@ -401,21 +413,19 @@
 
     <script>
         // ============================================
-        // DATA STORAGE (localStorage)
+        // DATA STORAGE
         // ============================================
         let currentUser = null;
         let users = [];
-        let currentUserData = null;
+        let currentPreviewData = null;
 
-        // Load data dari localStorage
         function loadData() {
-            const savedUsers = localStorage.getItem('linktree_users');
+            const savedUsers = localStorage.getItem('linktree_users_v2');
             if(savedUsers) {
                 users = JSON.parse(savedUsers);
             } else {
-                // Default admin account
                 users = [{
-                    id: 'admin_' + Date.now(),
+                    id: 'admin_1',
                     username: 'admin',
                     password: 'admin123',
                     isAdmin: true,
@@ -446,27 +456,27 @@
         }
 
         function saveData() {
-            localStorage.setItem('linktree_users', JSON.stringify(users));
+            localStorage.setItem('linktree_users_v2', JSON.stringify(users));
         }
 
-        // Cari user by username
         function findUser(username) {
             return users.find(u => u.username === username);
         }
 
-        // Login
+        function findUserById(id) {
+            return users.find(u => u.id === id);
+        }
+
         function login(username, password) {
             const user = findUser(username);
             if(user && user.password === password) {
                 currentUser = user;
                 localStorage.setItem('currentUserId', user.id);
-                renderApp();
                 return true;
             }
             return false;
         }
 
-        // Register
         function register(username, password, displayName) {
             if(findUser(username)) return false;
             const newUser = {
@@ -501,7 +511,6 @@
             return true;
         }
 
-        // Update user data
         function updateUserData(updates) {
             if(!currentUser) return;
             const index = users.findIndex(u => u.id === currentUser.id);
@@ -510,352 +519,44 @@
                 currentUser = users[index];
                 localStorage.setItem('currentUserId', currentUser.id);
                 saveData();
-                renderApp();
+                renderCurrentPage();
             }
         }
 
-        // Delete user (admin only)
-        function deleteUser(userId) {
-            if(!currentUser?.isAdmin) return;
-            users = users.filter(u => u.id !== userId);
-            saveData();
-            renderApp();
-        }
-
-        // Logout
         function logout() {
             currentUser = null;
             localStorage.removeItem('currentUserId');
-            renderApp();
+            window.location.hash = '';
+            renderCurrentPage();
         }
 
         // ============================================
-        // RENDER LINKTREE PREVIEW
+        // RENDER FUNCTIONS
         // ============================================
-        function renderLinkTreePreview(userData) {
-            const bioArray = (userData.bio || '').split(',').map(s => s.trim()).filter(s => s);
-            const theme = userData.theme || 'light';
-            const bgImage = userData.bgImage || '';
-            
-            let bgStyle = '';
-            if(bgImage) {
-                bgStyle = `background: url('${bgImage}') center/cover fixed no-repeat;`;
-            } else {
-                bgStyle = theme === 'dark' ? 'background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);' : 'background: linear-gradient(135deg, #667eea, #764ba2);';
-            }
-
-            let avatarHtml = '';
-            if(userData.avatar) {
-                avatarHtml = `<img src="${userData.avatar}" style="width: 100%; height: 100%; object-fit: cover;">`;
-            } else {
-                avatarHtml = '<i class="fas fa-user-astronaut"></i>';
-            }
-
-            let linksHtml = '';
-            const platforms = [
-                { key: 'instagram', name: 'Instagram', icon: 'fab fa-instagram' },
-                { key: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok' },
-                { key: 'youtube', name: 'YouTube', icon: 'fab fa-youtube' },
-                { key: 'github', name: 'GitHub', icon: 'fab fa-github' },
-                { key: 'whatsapp', name: 'WhatsApp', icon: 'fab fa-whatsapp' },
-                { key: 'discord', name: 'Discord', icon: 'fab fa-discord' }
-            ];
-
-            platforms.forEach(p => {
-                const url = userData.links?.[p.key];
-                const backText = userData.backTexts?.[p.key] || '';
-                if(url && url.trim()) {
-                    linksHtml += `
-                        <a href="${url}" target="_blank" class="preview-link">
-                            <div class="preview-link-left">
-                                <i class="${p.icon}"></i>
-                                <span>${p.name}</span>
-                            </div>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    `;
-                }
-            });
-
-            if(userData.customLinks) {
-                userData.customLinks.forEach(link => {
-                    if(link.name && link.url) {
-                        linksHtml += `
-                            <a href="${link.url}" target="_blank" class="preview-link">
-                                <div class="preview-link-left">
-                                    <i class="fas fa-link"></i>
-                                    <span>${escapeHtml(link.name)}</span>
-                                </div>
-                                <i class="fas fa-arrow-right"></i>
-                            </a>
-                        `;
-                    }
-                });
-            }
-
-            let spotifyHtml = '';
-            if(userData.spotifyId && userData.spotifyId.trim()) {
-                let spotifyId = userData.spotifyId.trim();
-                if(spotifyId.includes('open.spotify.com')) {
-                    const match = spotifyId.match(/playlist\/([a-zA-Z0-9]+)/);
-                    if(match) spotifyId = match[1];
-                }
-                spotifyHtml = `
-                    <div style="margin-top: 20px;">
-                        <iframe src="https://open.spotify.com/embed/playlist/${spotifyId}?utm_source=generator" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius: 12px; width: 100%; height: 152px;"></iframe>
-                    </div>
-                `;
-            }
-
-            return `
-                <div style="text-align: center;">
-                    <div class="preview-avatar" style="margin: 0 auto 15px;">${avatarHtml}</div>
-                    <div class="preview-name">${escapeHtml(userData.displayName || '@user')}</div>
-                    <div class="preview-bio">${escapeHtml(bioArray[0] || '')}</div>
-                </div>
-                <div style="margin-top: 20px;">
-                    ${linksHtml}
-                </div>
-                ${spotifyHtml}
-                <div class="footer" style="text-align: center; font-size: 11px; opacity: 0.6; margin-top: 20px;">
-                    <i class="fas fa-link"></i> Made with LinkTree Generator
-                </div>
-            `;
-        }
-
-        function escapeHtml(str) {
-            if(!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if(m === '&') return '&amp;';
-                if(m === '<') return '&lt;';
-                if(m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        // ============================================
-        // RENDER FORM (User Settings)
-        // ============================================
-        function renderUserSettings() {
-            if(!currentUser) return '';
-
-            const customLinksHtml = (currentUser.customLinks || []).map((link, idx) => `
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" placeholder="Nama Link" value="${escapeHtml(link.name)}" data-custom-name="${idx}" style="flex:1">
-                    <input type="text" placeholder="URL" value="${escapeHtml(link.url)}" data-custom-url="${idx}" style="flex:2">
-                    <button data-custom-remove="${idx}" style="padding: 0 15px; background: rgba(255,0,0,0.5); border: none; border-radius: 8px; color: white; cursor: pointer;">✖</button>
-                </div>
-            `).join('');
-
-            return `
-                <div class="form-section">
-                    <h2><i class="fas fa-user-cog"></i> Edit Profile Kamu</h2>
-                    
-                    <div class="form-group">
-                        <label>Foto Profile</label>
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <div class="preview-avatar" id="avatarPreviewUpload" style="width: 80px; height: 80px; cursor: pointer;">
-                                ${currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user"></i>'}
-                            </div>
-                            <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;">
-                            <button id="clearAvatarBtn" class="btn-outline" style="padding: 8px 15px;">Hapus Foto</button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Nama Tampilan</label>
-                        <input type="text" id="displayName" value="${escapeHtml(currentUser.displayName || '')}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Bio (pisahkan dengan koma , untuk efek typing)</label>
-                        <textarea id="bio" rows="3">${escapeHtml(currentUser.bio || '')}</textarea>
-                    </div>
-
-                    <div class="section-title">Sosial Media</div>
-                    <div class="form-group"><label>Instagram URL</label><input type="text" id="instagramUrl" value="${escapeHtml(currentUser.links?.instagram || '')}"></div>
-                    <div class="form-group"><label>TikTok URL</label><input type="text" id="tiktokUrl" value="${escapeHtml(currentUser.links?.tiktok || '')}"></div>
-                    <div class="form-group"><label>YouTube URL</label><input type="text" id="youtubeUrl" value="${escapeHtml(currentUser.links?.youtube || '')}"></div>
-                    <div class="form-group"><label>GitHub URL</label><input type="text" id="githubUrl" value="${escapeHtml(currentUser.links?.github || '')}"></div>
-                    <div class="form-group"><label>WhatsApp URL</label><input type="text" id="whatsappUrl" value="${escapeHtml(currentUser.links?.whatsapp || '')}"></div>
-                    <div class="form-group"><label>Discord URL</label><input type="text" id="discordUrl" value="${escapeHtml(currentUser.links?.discord || '')}"></div>
-
-                    <div class="section-title">Username di Card Belakang</div>
-                    <div class="form-group"><label>Instagram @username</label><input type="text" id="backInstagram" value="${escapeHtml(currentUser.backTexts?.instagram || '')}"></div>
-                    <div class="form-group"><label>TikTok @username</label><input type="text" id="backTiktok" value="${escapeHtml(currentUser.backTexts?.tiktok || '')}"></div>
-                    <div class="form-group"><label>YouTube Channel</label><input type="text" id="backYoutube" value="${escapeHtml(currentUser.backTexts?.youtube || '')}"></div>
-                    <div class="form-group"><label>GitHub Username</label><input type="text" id="backGithub" value="${escapeHtml(currentUser.backTexts?.github || '')}"></div>
-
-                    <div class="section-title">Custom Link</div>
-                    <div id="customLinksForm">${customLinksHtml}</div>
-                    <button id="addCustomLinkBtn" class="btn-outline" style="width: 100%; padding: 10px; margin-top: 10px;"><i class="fas fa-plus"></i> Tambah Link</button>
-
-                    <div class="section-title">Spotify Playlist</div>
-                    <div class="form-group">
-                        <label>Playlist ID atau URL</label>
-                        <input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId || '')}">
-                    </div>
-
-                    <div class="section-title">Tema & Background</div>
-                    <div class="form-group">
-                        <label>Mode Tema</label>
-                        <select id="themeMode">
-                            <option value="light" ${currentUser.theme === 'light' ? 'selected' : ''}>Light Mode</option>
-                            <option value="dark" ${currentUser.theme === 'dark' ? 'selected' : ''}>Dark Mode</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Background Custom (URL Gambar)</label>
-                        <input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage || '')}">
-                    </div>
-
-                    <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan Perubahan</button>
-                </div>
-            `;
-        }
-
-        // ============================================
-        // RENDER ADMIN PANEL
-        // ============================================
-        function renderAdminPanel() {
-            if(!currentUser?.isAdmin) return '';
-
-            const userListHtml = users.filter(u => !u.isAdmin).map(user => `
-                <div class="user-card">
-                    <div>
-                        <strong>${escapeHtml(user.username)}</strong><br>
-                        <small>${escapeHtml(user.displayName || '')}</small>
-                    </div>
-                    <div>
-                        <button class="view-user-linktree" data-user-id="${user.id}"><i class="fas fa-eye"></i> Lihat LinkTree</button>
-                        <button class="delete-user" data-user-id="${user.id}"><i class="fas fa-trash"></i> Hapus</button>
-                    </div>
-                </div>
-            `).join('');
-
-            return `
-                <div class="admin-panel">
-                    <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
-                    <p>Total User: ${users.filter(u => !u.isAdmin).length}</p>
-                    <div class="user-list">
-                        ${userListHtml || '<p style="opacity:0.6;">Belum ada user terdaftar</p>'}
-                    </div>
-                </div>
-            `;
-        }
-
-        // ============================================
-        // RENDER APP UTAMA
-        // ============================================
-        function renderApp() {
-            const mainContainer = document.getElementById('mainContainer');
-            const navLinks = document.getElementById('navLinks');
-            const savedUserId = localStorage.getItem('currentUserId');
-            
-            if(savedUserId && !currentUser) {
-                currentUser = users.find(u => u.id === savedUserId);
-            }
-
-            if(!currentUser) {
-                // Tampilkan halaman welcome
-                mainContainer.innerHTML = `
+        
+        // Render LinkTree untuk user tertentu (halaman publik)
+        function renderLinkTreePage(username) {
+            const user = findUser(username);
+            if(!user) {
+                document.getElementById('mainContainer').innerHTML = `
                     <div class="welcome-section">
-                        <h1>Buat LinkTree <span style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">Gratis!</span></h1>
-                        <p>Daftar sekarang dan buat halaman link personalmu sendiri.<br>Custom semua link sosial media, Spotify playlist, dan tampilan.</p>
-                        <div class="cta-buttons">
-                            <button id="openLoginBtn" class="btn-primary">Login</button>
-                            <button id="openRegisterBtn" class="btn-outline">Daftar Gratis</button>
-                        </div>
-                        <div style="margin-top: 50px;">
-                            <p style="opacity:0.6;">✨ Lebih dari 100+ user sudah bergabung ✨</p>
-                        </div>
+                        <h1>User Tidak Ditemukan</h1>
+                        <p>User dengan username "${username}" tidak ada.</p>
+                        <button onclick="window.location.hash=''" class="btn-primary">Kembali ke Beranda</button>
                     </div>
                 `;
-                navLinks.innerHTML = `<button id="navLoginBtn" class="btn-primary">Login</button>`;
-                
-                document.getElementById('openLoginBtn')?.addEventListener('click', () => openModal('login'));
-                document.getElementById('openRegisterBtn')?.addEventListener('click', () => openModal('register'));
-                document.getElementById('navLoginBtn')?.addEventListener('click', () => openModal('login'));
-            } else {
-                // Dashboard user
-                const previewHtml = renderLinkTreePreview(currentUser);
-                const settingsHtml = renderUserSettings();
-                const adminHtml = renderAdminPanel();
-                
-                mainContainer.innerHTML = `
-                    <div class="dashboard">
-                        ${settingsHtml}
-                        <div class="preview-section">
-                            <div class="preview-container">
-                                <div class="preview-header" style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                    <h3><i class="fas fa-eye"></i> Live Preview</h3>
-                                    <button id="viewMyLinktreeBtn" class="btn-outline" style="padding: 5px 15px;"><i class="fas fa-external-link-alt"></i> Lihat LinkTree Saya</button>
-                                </div>
-                                <div id="linktreePreview" class="linktree-preview">
-                                    ${previewHtml}
-                                </div>
-                            </div>
-                            ${currentUser.isAdmin ? `<div style="margin-top: 20px;">${adminHtml}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-                
-                navLinks.innerHTML = `
-                    <span style="opacity:0.7;">👋 ${escapeHtml(currentUser.displayName || currentUser.username)}</span>
-                    ${currentUser.isAdmin ? '<span style="background:rgba(255,0,0,0.3); padding:4px 12px; border-radius:20px; font-size:12px;">Admin</span>' : ''}
-                    <button id="logoutBtn" class="btn-outline">Logout</button>
-                `;
-                
-                // Bind form events
-                bindFormEvents();
-                
-                document.getElementById('logoutBtn')?.addEventListener('click', logout);
-                document.getElementById('viewMyLinktreeBtn')?.addEventListener('click', () => {
-                    const fullHtml = generateFullHTML(currentUser);
-                    const blob = new Blob([fullHtml], {type: 'text/html'});
-                    const url = URL.createObjectURL(blob);
-                    window.open(url, '_blank');
-                });
-                
-                // Admin actions
-                document.querySelectorAll('.view-user-linktree')?.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const userId = btn.dataset.userId;
-                        const user = users.find(u => u.id === userId);
-                        if(user) {
-                            const fullHtml = generateFullHTML(user);
-                            const blob = new Blob([fullHtml], {type: 'text/html'});
-                            const url = URL.createObjectURL(blob);
-                            window.open(url, '_blank');
-                        }
-                    });
-                });
-                document.querySelectorAll('.delete-user')?.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        if(confirm('Hapus user ini?')) {
-                            deleteUser(btn.dataset.userId);
-                        }
-                    });
-                });
+                document.body.className = 'light-mode';
+                return;
             }
-        }
 
-        // Generate full HTML for a user
-        function generateFullHTML(user) {
-            const bioArray = (user.bio || '').split(',').map(s => s.trim()).filter(s => s);
-            const theme = user.theme || 'light';
-            const bgImage = user.bgImage || '';
+            // Apply theme dari user
+            applyUserTheme(user);
             
-            let bgStyle = '';
-            if(bgImage) {
-                bgStyle = `background: url('${bgImage}') center/cover fixed no-repeat;`;
-            } else {
-                bgStyle = theme === 'dark' ? 'background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);' : 'background: linear-gradient(135deg, #667eea, #764ba2);';
-            }
-
+            const bioArray = (user.bio || '').split(',').map(s => s.trim()).filter(s => s);
+            
             let avatarHtml = '';
             if(user.avatar) {
-                avatarHtml = `<img src="${user.avatar}" class="avatar-img">`;
+                avatarHtml = `<img src="${user.avatar}" style="width: 100%; height: 100%; object-fit: cover;">`;
             } else {
                 avatarHtml = '<i class="fas fa-user-astronaut"></i>';
             }
@@ -875,19 +576,14 @@
                 const backText = user.backTexts?.[p.key] || '';
                 if(url && url.trim()) {
                     linksHtml += `
-            <a href="${url}" target="_blank" class="link-card">
-                <div class="flip-card-inner">
-                    <div class="card-front">
-                        <div class="link-left"><i class="${p.icon}"></i><span>${p.name}</span></div>
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                    <div class="card-back">
-                        <i class="${p.icon}"></i>
-                        <span>${backText}</span>
-                        <i class="fas fa-external-link-alt"></i>
-                    </div>
-                </div>
-            </a>`;
+                        <a href="${url}" target="_blank" class="preview-link" style="display: flex; align-items: center; justify-content: space-between;">
+                            <div class="preview-link-left">
+                                <i class="${p.icon}"></i>
+                                <span>${p.name}</span>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    `;
                 }
             });
 
@@ -895,19 +591,14 @@
                 user.customLinks.forEach(link => {
                     if(link.name && link.url) {
                         linksHtml += `
-            <a href="${link.url}" target="_blank" class="link-card">
-                <div class="flip-card-inner">
-                    <div class="card-front">
-                        <div class="link-left"><i class="fas fa-link"></i><span>${link.name}</span></div>
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                    <div class="card-back">
-                        <i class="fas fa-link"></i>
-                        <span>${link.name}</span>
-                        <i class="fas fa-external-link-alt"></i>
-                    </div>
-                </div>
-            </a>`;
+                            <a href="${link.url}" target="_blank" class="preview-link">
+                                <div class="preview-link-left">
+                                    <i class="fas fa-link"></i>
+                                    <span>${escapeHtml(link.name)}</span>
+                                </div>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        `;
                     }
                 });
             }
@@ -920,110 +611,234 @@
                     if(match) spotifyId = match[1];
                 }
                 spotifyHtml = `
-        <div class="spotify-player">
-            <iframe src="https://open.spotify.com/embed/playlist/${spotifyId}?utm_source=generator" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-        </div>`;
+                    <div style="margin-top: 20px;">
+                        <iframe src="https://open.spotify.com/embed/playlist/${spotifyId}?utm_source=generator" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius: 12px; width: 100%; height: 152px;"></iframe>
+                    </div>
+                `;
             }
 
-            return `<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkTree - ${user.displayName || user.username}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            padding: 40px 20px;
-            ${bgStyle}
-            color: #fff;
-        }
-        .container { max-width: 500px; margin: 0 auto; }
-        .avatar-container {
-            width: 120px; height: 120px; margin: 0 auto 20px;
-            border-radius: 50%; overflow: hidden;
-            border: 4px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-container i { font-size: 60px; color: white; }
-        .profile h1 { text-align: center; font-size: 28px; margin-bottom: 8px; }
-        .bio { text-align: center; font-size: 14px; opacity: 0.9; margin-bottom: 20px; }
-        .link-card {
-            display: block;
-            width: 100%;
-            height: 70px;
-            perspective: 1000px;
-            margin-bottom: 15px;
-            text-decoration: none;
-        }
-        .flip-card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            border-radius: 50px;
-        }
-        .link-card:hover .flip-card-inner {
-            transform: rotateY(180deg);
-        }
-        .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 24px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-        }
-        .card-back {
-            transform: rotateY(180deg);
-            background: linear-gradient(135deg, #1DB954, #191414);
-            justify-content: center;
-            gap: 12px;
-        }
-        .link-left { display: flex; align-items: center; gap: 15px; }
-        .link-left i { font-size: 24px; width: 30px; }
-        .spotify-player { margin: 20px 0; }
-        .spotify-player iframe { border-radius: 12px; width: 100%; height: 152px; }
-        .footer { text-align: center; font-size: 12px; opacity: 0.6; padding-top: 20px; }
-        @media (max-width: 480px) {
-            .link-card { height: 65px; }
-            .card-front, .card-back { padding: 14px 20px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="profile">
-            <div class="avatar-container">
-                ${avatarHtml}
-            </div>
-            <h1>${user.displayName || '@' + user.username}</h1>
-            <div class="bio">${bioArray[0] || ''}</div>
-        </div>
-        ${linksHtml}
-        ${spotifyHtml}
-        <div class="footer">
-            <p>© 2026 ${user.displayName || user.username} - Made with LinkTree Generator</p>
-        </div>
-    </div>
-</body>
-</html>`;
+            document.getElementById('mainContainer').innerHTML = `
+                <div style="max-width: 500px; margin: 0 auto;">
+                    <div style="text-align: center;">
+                        <div class="preview-avatar" style="margin: 0 auto 15px;">${avatarHtml}</div>
+                        <div class="preview-name">${escapeHtml(user.displayName || '@' + user.username)}</div>
+                        <div class="preview-bio">${escapeHtml(bioArray[0] || '')}</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        ${linksHtml}
+                    </div>
+                    ${spotifyHtml}
+                    <div class="footer" style="text-align: center; font-size: 11px; opacity: 0.6; margin-top: 20px; padding: 20px;">
+                        <i class="fas fa-link"></i> Made with LinkTree Generator
+                    </div>
+                </div>
+            `;
+
+            // Update nav links untuk halaman publik
+            const navLinks = document.getElementById('navLinks');
+            if(currentUser) {
+                navLinks.innerHTML = `
+                    <span style="opacity:0.7;">👋 ${escapeHtml(currentUser.displayName || currentUser.username)}</span>
+                    <button id="goToSettingsBtn" class="btn-outline"><i class="fas fa-cog"></i> Settings</button>
+                    <button id="logoutNavBtn" class="btn-outline">Logout</button>
+                `;
+                document.getElementById('goToSettingsBtn')?.addEventListener('click', () => {
+                    window.location.hash = 'settings';
+                    renderCurrentPage();
+                });
+                document.getElementById('logoutNavBtn')?.addEventListener('click', logout);
+            } else {
+                navLinks.innerHTML = `<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
+                document.getElementById('navLoginBtn')?.addEventListener('click', () => openModal('login'));
+            }
         }
 
-        // Bind form events untuk user settings
-        function bindFormEvents() {
+        // Render halaman settings (user login required)
+        function renderSettingsPage() {
+            if(!currentUser) {
+                window.location.hash = '';
+                renderCurrentPage();
+                return;
+            }
+
+            // Apply theme dari user
+            applyUserTheme(currentUser);
+            
+            const bioArray = (currentUser.bio || '').split(',').map(s => s.trim()).filter(s => s);
+            
+            // Preview data untuk settings
+            currentPreviewData = currentUser;
+
+            const customLinksHtml = (currentUser.customLinks || []).map((link, idx) => `
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" placeholder="Nama Link" value="${escapeHtml(link.name)}" data-custom-name="${idx}" style="flex:1">
+                    <input type="text" placeholder="URL" value="${escapeHtml(link.url)}" data-custom-url="${idx}" style="flex:2">
+                    <button data-custom-remove="${idx}" style="padding: 0 15px; background: rgba(255,0,0,0.5); border: none; border-radius: 8px; color: white; cursor: pointer;">✖</button>
+                </div>
+            `).join('');
+
+            // Preview LinkTree
+            let previewAvatarHtml = '';
+            if(currentUser.avatar) {
+                previewAvatarHtml = `<img src="${currentUser.avatar}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else {
+                previewAvatarHtml = '<i class="fas fa-user-astronaut"></i>';
+            }
+
+            let previewLinksHtml = '';
+            const platforms = [
+                { key: 'instagram', name: 'Instagram', icon: 'fab fa-instagram' },
+                { key: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok' },
+                { key: 'youtube', name: 'YouTube', icon: 'fab fa-youtube' },
+                { key: 'github', name: 'GitHub', icon: 'fab fa-github' },
+                { key: 'whatsapp', name: 'WhatsApp', icon: 'fab fa-whatsapp' },
+                { key: 'discord', name: 'Discord', icon: 'fab fa-discord' }
+            ];
+
+            platforms.forEach(p => {
+                const url = currentUser.links?.[p.key];
+                if(url && url.trim()) {
+                    previewLinksHtml += `
+                        <div class="preview-link">
+                            <div class="preview-link-left">
+                                <i class="${p.icon}"></i>
+                                <span>${p.name}</span>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    `;
+                }
+            });
+
+            (currentUser.customLinks || []).forEach(link => {
+                if(link.name && link.url) {
+                    previewLinksHtml += `
+                        <div class="preview-link">
+                            <div class="preview-link-left">
+                                <i class="fas fa-link"></i>
+                                <span>${escapeHtml(link.name)}</span>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    `;
+                }
+            });
+
+            let previewSpotifyHtml = '';
+            if(currentUser.spotifyId && currentUser.spotifyId.trim()) {
+                let spotifyId = currentUser.spotifyId.trim();
+                if(spotifyId.includes('open.spotify.com')) {
+                    const match = spotifyId.match(/playlist\/([a-zA-Z0-9]+)/);
+                    if(match) spotifyId = match[1];
+                }
+                previewSpotifyHtml = `
+                    <div style="margin-top: 20px;">
+                        <iframe src="https://open.spotify.com/embed/playlist/${spotifyId}?utm_source=generator" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius: 12px; width: 100%; height: 152px;"></iframe>
+                    </div>
+                `;
+            }
+
+            const userUrl = `${window.location.origin}${window.location.pathname}#u/${currentUser.username}`;
+
+            document.getElementById('mainContainer').innerHTML = `
+                <div class="settings-layout">
+                    <!-- Form Settings -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-user-cog"></i> Edit Profile Kamu</h2>
+                        
+                        <div class="form-group">
+                            <label>Foto Profile</label>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <div class="preview-avatar" id="avatarPreviewUpload" style="width: 80px; height: 80px; cursor: pointer;">
+                                    ${currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user"></i>'}
+                                </div>
+                                <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;">
+                                <button id="clearAvatarBtn" class="btn-outline" style="padding: 8px 15px;">Hapus Foto</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nama Tampilan</label>
+                            <input type="text" id="displayName" value="${escapeHtml(currentUser.displayName || '')}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Bio (pisahkan dengan koma , untuk efek typing)</label>
+                            <textarea id="bio" rows="3">${escapeHtml(currentUser.bio || '')}</textarea>
+                        </div>
+
+                        <div class="section-title">Sosial Media</div>
+                        <div class="form-group"><label>Instagram URL</label><input type="text" id="instagramUrl" value="${escapeHtml(currentUser.links?.instagram || '')}"></div>
+                        <div class="form-group"><label>TikTok URL</label><input type="text" id="tiktokUrl" value="${escapeHtml(currentUser.links?.tiktok || '')}"></div>
+                        <div class="form-group"><label>YouTube URL</label><input type="text" id="youtubeUrl" value="${escapeHtml(currentUser.links?.youtube || '')}"></div>
+                        <div class="form-group"><label>GitHub URL</label><input type="text" id="githubUrl" value="${escapeHtml(currentUser.links?.github || '')}"></div>
+                        <div class="form-group"><label>WhatsApp URL</label><input type="text" id="whatsappUrl" value="${escapeHtml(currentUser.links?.whatsapp || '')}"></div>
+                        <div class="form-group"><label>Discord URL</label><input type="text" id="discordUrl" value="${escapeHtml(currentUser.links?.discord || '')}"></div>
+
+                        <div class="section-title">Username di Card Belakang</div>
+                        <div class="form-group"><label>Instagram @username</label><input type="text" id="backInstagram" value="${escapeHtml(currentUser.backTexts?.instagram || '')}"></div>
+                        <div class="form-group"><label>TikTok @username</label><input type="text" id="backTiktok" value="${escapeHtml(currentUser.backTexts?.tiktok || '')}"></div>
+                        <div class="form-group"><label>YouTube Channel</label><input type="text" id="backYoutube" value="${escapeHtml(currentUser.backTexts?.youtube || '')}"></div>
+                        <div class="form-group"><label>GitHub Username</label><input type="text" id="backGithub" value="${escapeHtml(currentUser.backTexts?.github || '')}"></div>
+
+                        <div class="section-title">Custom Link</div>
+                        <div id="customLinksForm">${customLinksHtml}</div>
+                        <button id="addCustomLinkBtn" class="btn-outline" style="width: 100%; padding: 10px; margin-top: 10px;"><i class="fas fa-plus"></i> Tambah Link</button>
+
+                        <div class="section-title">Spotify Playlist</div>
+                        <div class="form-group">
+                            <label>Playlist ID atau URL</label>
+                            <input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId || '')}">
+                        </div>
+
+                        <div class="section-title">Tema & Background</div>
+                        <div class="form-group">
+                            <label>Mode Tema</label>
+                            <select id="themeMode">
+                                <option value="light" ${currentUser.theme === 'light' ? 'selected' : ''}>Light Mode</option>
+                                <option value="dark" ${currentUser.theme === 'dark' ? 'selected' : ''}>Dark Mode</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Background Custom (URL Gambar)</label>
+                            <input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage || '')}">
+                        </div>
+
+                        <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan Perubahan</button>
+                        
+                        <div class="url-info">
+                            <i class="fas fa-link"></i> LinkTree Kamu:<br>
+                            <code id="userUrl">${userUrl}</code><br>
+                            <button id="copyUrlBtn" class="copy-url-btn"><i class="fas fa-copy"></i> Copy URL</button>
+                            <button id="viewMyLinktreeBtn" class="btn-success" style="margin-left: 10px;"><i class="fas fa-external-link-alt"></i> Buka LinkTree</button>
+                        </div>
+                    </div>
+
+                    <!-- Live Preview -->
+                    <div class="preview-section">
+                        <div class="preview-container">
+                            <h3 style="margin-bottom: 15px;"><i class="fas fa-eye"></i> Live Preview</h3>
+                            <div class="linktree-preview-card">
+                                <div style="text-align: center;">
+                                    <div class="preview-avatar" style="margin: 0 auto 15px;">${previewAvatarHtml}</div>
+                                    <div class="preview-name">${escapeHtml(currentUser.displayName || '@' + currentUser.username)}</div>
+                                    <div class="preview-bio">${escapeHtml(bioArray[0] || '')}</div>
+                                </div>
+                                <div style="margin-top: 20px;">
+                                    ${previewLinksHtml}
+                                </div>
+                                ${previewSpotifyHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Bind events
+            bindSettingsEvents();
+        }
+
+        function bindSettingsEvents() {
             // Avatar upload
             const avatarPreview = document.getElementById('avatarPreviewUpload');
             const avatarInput = document.getElementById('avatarUploadInput');
@@ -1094,6 +909,75 @@
                     updateUserData({ customLinks: newCustomLinks });
                 });
             });
+            
+            document.getElementById('copyUrlBtn')?.addEventListener('click', () => {
+                const url = document.getElementById('userUrl')?.textContent;
+                if(url) {
+                    navigator.clipboard.writeText(url);
+                    alert('URL LinkTree berhasil disalin!');
+                }
+            });
+            
+            document.getElementById('viewMyLinktreeBtn')?.addEventListener('click', () => {
+                window.open(`#u/${currentUser.username}`, '_blank');
+            });
+        }
+
+        // Render halaman welcome (belum login)
+        function renderWelcomePage() {
+            document.body.className = 'light-mode';
+            document.getElementById('mainContainer').innerHTML = `
+                <div class="welcome-section">
+                    <h1>Buat LinkTree <span style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">Gratis!</span></h1>
+                    <p>Daftar sekarang dan buat halaman link personalmu sendiri.<br>Custom semua link sosial media, Spotify playlist, dan tampilan.</p>
+                    <div class="cta-buttons">
+                        <button id="openLoginBtn" class="btn-primary">Login</button>
+                        <button id="openRegisterBtn" class="btn-outline">Daftar Gratis</button>
+                    </div>
+                    <div style="margin-top: 50px;">
+                        <p style="opacity:0.6;">✨ Setiap user punya URL unik: #u/usernamekamu ✨</p>
+                    </div>
+                </div>
+            `;
+            
+            const navLinks = document.getElementById('navLinks');
+            navLinks.innerHTML = `<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
+            
+            document.getElementById('openLoginBtn')?.addEventListener('click', () => openModal('login'));
+            document.getElementById('openRegisterBtn')?.addEventListener('click', () => openModal('register'));
+            document.getElementById('navLoginBtn')?.addEventListener('click', () => openModal('login'));
+        }
+
+        // Apply theme dari user ke body
+        function applyUserTheme(user) {
+            const theme = user?.theme || 'light';
+            const bgImage = user?.bgImage || '';
+            
+            if(bgImage) {
+                document.body.style.setProperty('--custom-bg', `url('${bgImage}')`);
+                document.body.className = 'custom-bg';
+            } else {
+                document.body.className = theme === 'dark' ? 'dark-mode' : 'light-mode';
+                document.body.style.removeProperty('--custom-bg');
+            }
+        }
+
+        // Router
+        function renderCurrentPage() {
+            const hash = window.location.hash.slice(1); // hapus #
+            
+            if(hash === 'settings') {
+                renderSettingsPage();
+            } else if(hash.startsWith('u/')) {
+                const username = hash.slice(2);
+                renderLinkTreePage(username);
+            } else {
+                if(currentUser) {
+                    renderSettingsPage();
+                } else {
+                    renderWelcomePage();
+                }
+            }
         }
 
         // Modal handling
@@ -1110,11 +994,24 @@
             document.getElementById('registerModal')?.classList.remove('show');
         }
 
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Event listeners untuk modal
         document.getElementById('doLoginBtn')?.addEventListener('click', () => {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             if(login(username, password)) {
                 closeModals();
+                window.location.hash = 'settings';
+                renderCurrentPage();
             } else {
                 alert('Username atau password salah!');
             }
@@ -1150,9 +1047,21 @@
             openModal('login');
         });
 
+        document.getElementById('homeLogo')?.addEventListener('click', () => {
+            window.location.hash = '';
+            renderCurrentPage();
+        });
+
+        // Listen hash change
+        window.addEventListener('hashchange', renderCurrentPage);
+        
         // Initialize
         loadData();
-        renderApp();
+        const savedUserId = localStorage.getItem('currentUserId');
+        if(savedUserId) {
+            currentUser = findUserById(savedUserId);
+        }
+        renderCurrentPage();
     </script>
 </body>
 </html>
