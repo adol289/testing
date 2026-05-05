@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkTree Pro – Preview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>LinkTree Pro — Preview</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -14,23 +14,30 @@
         body.light-mode { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
         body.dark-mode { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); color: #e0e0e0; }
         body.custom-bg { background: var(--custom-bg) !important; background-size: cover !important; background-position: center !important; background-attachment: fixed !important; }
+        
         .navbar { background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); }
         .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 24px; font-weight: 800; cursor: pointer; }
         .logo i { color: #1DB954; margin-right: 8px; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 20px; border-radius: 40px; cursor: pointer; }
-        .main-container { max-width: 550px; margin: 30px auto; padding: 0 20px; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 20px; border-radius: 40px; cursor: pointer; transition: 0.2s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.2); }
+        
+        .main-container { max-width: 550px; margin: 40px auto; padding: 0 20px; }
+        .profile-card { background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 48px; padding: 32px 24px; border: 1px solid rgba(255,255,255,0.15); }
         .preview-avatar { width: 120px; height: 120px; border-radius: 60px; background: rgba(255,255,255,0.2); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .preview-avatar i { font-size: 60px; }
+        .preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .preview-name { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .preview-bio { text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 30px; }
         .preview-link { background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 60px; padding: 14px 24px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: white; transition: 0.2s; }
         .preview-link:hover { transform: translateX(5px); background: rgba(255,255,255,0.2); }
-        .preview-link-left { display: flex; gap: 15px; align-items: center; }
+        .preview-link-left { display: flex; gap: 15px; align-items: center; font-weight: 500; }
+        .music-embed { margin-top: 25px; border-radius: 24px; overflow: hidden; }
         .footer { text-align: center; font-size: 11px; opacity: 0.5; margin-top: 40px; padding: 20px; }
-        .loading { text-align: center; padding: 50px; }
-        .error { text-align: center; padding: 50px; color: #ff8888; }
-        .music-embed { margin-top: 25px; }
+        .loading-spinner { border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 60px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-card { text-align: center; padding: 60px 20px; background: rgba(0,0,0,0.3); border-radius: 48px; }
+        .error-card i { font-size: 48px; margin-bottom: 20px; color: #ff8888; }
     </style>
 </head>
 <body class="light-mode">
@@ -40,7 +47,9 @@
             <button id="backBtn" class="btn-outline"><i class="fas fa-arrow-left"></i> Beranda</button>
         </div>
     </nav>
-    <div class="main-container" id="mainContainer"><div class="loading"><i class="fas fa-spinner fa-pulse"></i> Memuat...</div></div>
+    <div class="main-container" id="mainContainer">
+        <div class="loading-spinner"></div>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -52,67 +61,154 @@
             messagingSenderId: "551602488147",
             appId: "1:551602488147:web:67fa5a814a9fb2a688d7a6"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } catch(e) { console.error(e); }
 
-        function getUserByUsername(username) {
-            return new Promise(resolve=>{
-                db.ref('users').orderByChild('username').equalTo(username).once('value', snap=>{
-                    if(!snap.exists()) resolve(null);
-                    else { let user=null; snap.forEach(c=>user=c.val()); const{password,...rest}=user; resolve(rest); }
-                });
-            });
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+        function applyTheme(user) {
+            let theme = user?.theme || 'light';
+            let bg = user?.bgImage || '';
+            if (bg) {
+                document.body.style.setProperty('--custom-bg', `url('${bg}')`);
+                document.body.className = 'custom-bg';
+            } else {
+                document.body.className = theme === 'dark' ? 'dark-mode' : 'light-mode';
+                document.body.style.removeProperty('--custom-bg');
+            }
         }
 
-        function getMusicEmbed(url){
-            if(!url) return '';
-            if(url.includes('youtube.com/watch') || url.includes('youtu.be')){
-                let videoId='';
-                if(url.includes('youtu.be/')) videoId=url.split('youtu.be/')[1]?.split('?')[0];
-                else if(url.includes('watch?v=')) videoId=url.split('watch?v=')[1]?.split('&')[0];
-                if(videoId) return `<iframe src="https://www.youtube.com/embed/${videoId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
+        function getMusicEmbed(url) {
+            if (!url) return '';
+            if (url.includes('youtube.com/watch') || url.includes('youtu.be')) {
+                let videoId = '';
+                if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+                else if (url.includes('watch?v=')) videoId = url.split('watch?v=')[1]?.split('&')[0];
+                if (videoId) return `<iframe src="https://www.youtube.com/embed/${videoId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
             }
-            if(url.includes('youtube.com/playlist')){
-                let listId=url.split('list=')[1]?.split('&')[0];
-                if(listId) return `<iframe src="https://www.youtube.com/embed/videoseries?list=${listId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
+            if (url.includes('youtube.com/playlist')) {
+                let listId = url.split('list=')[1]?.split('&')[0];
+                if (listId) return `<iframe src="https://www.youtube.com/embed/videoseries?list=${listId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
             }
-            if(url.includes('spotify.com')){
-                let spotifyId=url; if(spotifyId.includes('playlist/')){ let m=spotifyId.match(/playlist\/([a-zA-Z0-9]+)/); if(m) spotifyId=m[1]; }
+            if (url.includes('spotify.com')) {
+                let spotifyId = url;
+                if (spotifyId.includes('playlist/')) {
+                    let m = spotifyId.match(/playlist\/([a-zA-Z0-9]+)/);
+                    if (m) spotifyId = m[1];
+                }
                 return `<iframe src="https://open.spotify.com/embed/playlist/${spotifyId}" style="border-radius:20px;width:100%;height:152px;" frameborder="0" allow="encrypted-media"></iframe>`;
             }
             return `<div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:20px; text-align:center;"><i class="fas fa-music"></i> <a href="${url}" target="_blank" style="color:white;">Buka Musik</a></div>`;
         }
 
-        function applyTheme(user) { let theme=user?.theme||'light', bg=user?.bgImage||''; if(bg){ document.body.style.setProperty('--custom-bg',`url('${bg}')`); document.body.className='custom-bg'; } else document.body.className=theme==='dark'?'dark-mode':'light-mode'; }
+        function getUserByUsername(username) {
+            return new Promise((resolve) => {
+                if (!database) return resolve(null);
+                database.ref('users').orderByChild('username').equalTo(username).once('value', (snap) => {
+                    if (!snap.exists()) resolve(null);
+                    else {
+                        let user = null;
+                        snap.forEach(c => user = c.val());
+                        const { password, ...rest } = user;
+                        resolve(rest);
+                    }
+                }).catch(() => resolve(null));
+            });
+        }
 
-        async function loadPreview(){
+        async function loadPreview() {
             const params = new URLSearchParams(window.location.search);
             const username = params.get('user');
-            if(!username){ document.getElementById('mainContainer').innerHTML='<div class="error"><i class="fas fa-exclamation-circle"></i> Username tidak ditemukan</div>'; return; }
+            
+            if (!username) {
+                document.getElementById('mainContainer').innerHTML = `
+                    <div class="error-card">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h2>Username tidak ditemukan</h2>
+                        <p>URL preview harus menyertakan ?user=username</p>
+                        <button onclick="window.location.href='index.html'" class="btn-outline" style="margin-top:20px;">Kembali ke Beranda</button>
+                    </div>
+                `;
+                return;
+            }
+            
             const user = await getUserByUsername(username);
-            if(!user){ document.getElementById('mainContainer').innerHTML='<div class="error"><i class="fas fa-user-slash"></i> User tidak ditemukan</div>'; return; }
+            
+            if (!user) {
+                document.getElementById('mainContainer').innerHTML = `
+                    <div class="error-card">
+                        <i class="fas fa-user-slash"></i>
+                        <h2>User tidak ditemukan</h2>
+                        <p>Username "${escapeHtml(username)}" tidak terdaftar</p>
+                        <button onclick="window.location.href='index.html'" class="btn-outline" style="margin-top:20px;">Daftar Sekarang</button>
+                    </div>
+                `;
+                return;
+            }
+            
             applyTheme(user);
-            let bioArr = (user.bio||'').split(',').map(s=>s.trim());
+            
+            let bioArr = (user.bio || '').split(',').map(s => s.trim());
             let avatarHtml = user.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut"></i>';
+            
             let linksHtml = '';
-            const platforms = ['instagram','tiktok','youtube','github','whatsapp','discord'];
-            platforms.forEach(p=>{ let url=user.links?.[p]; if(url?.trim()) linksHtml+=`<a href="${url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></a>`; });
-            if(user.customLinks) user.customLinks.forEach(l=>{ if(l.name && l.url) linksHtml+=`<a href="${l.url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fas fa-link"></i> ${escapeHtml(l.name)}</div><i class="fas fa-arrow-right"></i></a>`; });
+            const platforms = ['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'];
+            platforms.forEach(p => {
+                let url = user.links?.[p];
+                if (url && url.trim()) {
+                    let displayName = p.charAt(0).toUpperCase() + p.slice(1);
+                    linksHtml += `
+                        <a href="${url}" target="_blank" class="preview-link">
+                            <div class="preview-link-left"><i class="fab fa-${p}"></i> ${displayName}</div>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    `;
+                }
+            });
+            
+            if (user.customLinks && user.customLinks.length) {
+                user.customLinks.forEach(link => {
+                    if (link.name && link.url) {
+                        linksHtml += `
+                            <a href="${link.url}" target="_blank" class="preview-link">
+                                <div class="preview-link-left"><i class="fas fa-link"></i> ${escapeHtml(link.name)}</div>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        `;
+                    }
+                });
+            }
+            
             let musicEmbed = getMusicEmbed(user.musicUrl);
+            
             document.getElementById('mainContainer').innerHTML = `
-                <div>
-                    <div style="text-align:center;"><div class="preview-avatar">${avatarHtml}</div><div class="preview-name">${escapeHtml(user.displayName)}</div><div class="preview-bio">${escapeHtml(bioArr[0]||'')}</div></div>
+                <div class="profile-card">
+                    <div style="text-align:center;">
+                        <div class="preview-avatar">${avatarHtml}</div>
+                        <div class="preview-name">${escapeHtml(user.displayName)}</div>
+                        <div class="preview-bio">${escapeHtml(bioArr[0] || '')}</div>
+                    </div>
                     ${linksHtml}
                     ${musicEmbed ? `<div class="music-embed">${musicEmbed}</div>` : ''}
-                    <div class="footer"><i class="fas fa-leaf"></i> LinkTree Pro — share your world</div>
+                </div>
+                <div class="footer">
+                    <i class="fas fa-leaf"></i> LinkTree Pro — share your world
                 </div>
             `;
         }
-
-        function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-        document.getElementById('backBtn')?.addEventListener('click',()=>{ window.location.href='index.html'; });
-        document.getElementById('homeLogo')?.addEventListener('click',()=>{ window.location.href='index.html'; });
+        
+        document.getElementById('backBtn')?.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+        document.getElementById('homeLogo')?.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+        
         loadPreview();
     </script>
 </body>
-</html> 
+</html>
