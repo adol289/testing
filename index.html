@@ -89,7 +89,6 @@
         .template-card { background: rgba(0,0,0,0.4); border-radius: 24px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
         .template-card:hover { transform: translateY(-5px); background: rgba(0,0,0,0.5); }
         .template-card.premium { border-color: #f59e0b; }
-        .template-card img { width: 100%; border-radius: 16px; margin-bottom: 12px; background: #333; height: 120px; object-fit: cover; }
         .template-price { color: #f59e0b; font-weight: 700; margin-top: 8px; }
         .template-free { color: #1DB954; font-weight: 700; }
         .buy-template-btn { background: #f59e0b; border: none; padding: 8px 16px; border-radius: 30px; color: white; cursor: pointer; margin-top: 8px; transition: 0.2s; }
@@ -98,6 +97,27 @@
         
         .css-editor { font-family: monospace; background: #0a0a0a; color: #00ff88; font-size: 12px; }
         .whatsapp-link { display: inline-flex; align-items: center; gap: 8px; background: #25D366; padding: 10px 20px; border-radius: 40px; color: white; text-decoration: none; margin-top: 15px; font-weight: 600; }
+        
+        /* Live Chat Button */
+        .live-chat-btn { position: fixed; bottom: 30px; right: 30px; background: #25D366; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s; z-index: 1000; }
+        .live-chat-btn:hover { transform: scale(1.1); background: #128C7E; }
+        .live-chat-btn i { font-size: 30px; color: white; }
+        .chat-panel { position: fixed; bottom: 100px; right: 30px; width: 320px; background: #1a1f3a; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1001; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+        .chat-panel.show { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-header { background: #075E54; padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h4 { margin: 0; font-size: 16px; }
+        .chat-close { cursor: pointer; font-size: 20px; }
+        .chat-body { padding: 15px; max-height: 350px; overflow-y: auto; }
+        .chat-message { margin-bottom: 12px; display: flex; }
+        .chat-message.bot { justify-content: flex-start; }
+        .chat-message.user { justify-content: flex-end; }
+        .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 13px; }
+        .chat-message.bot .chat-bubble { background: rgba(255,255,255,0.1); color: white; }
+        .chat-message.user .chat-bubble { background: #075E54; color: white; }
+        .chat-input-area { display: flex; padding: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .chat-input-area input { flex: 1; padding: 10px; border-radius: 30px; border: none; background: rgba(0,0,0,0.3); color: white; }
+        .chat-input-area button { background: #25D366; border: none; width: 40px; border-radius: 30px; margin-left: 8px; cursor: pointer; color: white; }
     </style>
 </head>
 <body class="light-mode">
@@ -112,6 +132,26 @@
         <p style="text-align:center;">Memuat LinkTree Pro...</p>
     </div>
 
+    <!-- Live Chat Component -->
+    <div id="liveChatBtn" class="live-chat-btn">
+        <i class="fab fa-whatsapp"></i>
+    </div>
+    <div id="chatPanel" class="chat-panel">
+        <div class="chat-header">
+            <h4><i class="fab fa-whatsapp"></i> Live Chat Support</h4>
+            <span class="chat-close" id="chatCloseBtn">&times;</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-message bot">
+                <div class="chat-bubble">👋 Halo! Ada yang bisa kami bantu? Tim support akan merespon dalam beberapa menit.</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Tulis pesan...">
+            <button id="chatSendBtn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <!-- Modal Login -->
     <div id="loginModal" class="modal">
         <div class="modal-card">
@@ -123,6 +163,7 @@
                 <button id="verifyOtpBtn" class="save-btn" style="margin-top:8px;">Verifikasi & Masuk</button>
             </div>
             <p style="margin-top:20px;">Belum punya akun? <a href="#" id="showRegisterBtn" style="color:#A855F7;">Daftar Sekarang</a></p>
+            <p><a href="#" id="forgotPasswordBtn" style="color:#f59e0b; font-size: 12px;">Lupa Password?</a></p>
         </div>
     </div>
 
@@ -138,6 +179,23 @@
         </div>
     </div>
 
+    <!-- Modal Reset Password -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-card">
+            <h2><i class="fas fa-key"></i> Reset Password</h2>
+            <p style="font-size:13px; margin-bottom:15px;">Masukkan email yang terdaftar, kami akan kirim kode OTP untuk reset password</p>
+            <input type="email" id="resetEmail" placeholder="Email kamu">
+            <button id="sendResetOtpBtn" class="btn-primary" style="width:100%;">Kirim Kode Reset</button>
+            <div id="resetOtpSection" style="display:none; margin-top:16px;">
+                <input type="text" id="resetOtpCode" placeholder="Kode 6 digit">
+                <input type="password" id="newPassword" placeholder="Password Baru">
+                <input type="password" id="confirmPassword" placeholder="Konfirmasi Password Baru">
+                <button id="verifyResetOtpBtn" class="save-btn" style="margin-top:8px;">Reset Password</button>
+            </div>
+            <button id="closeResetModal" class="btn-outline" style="margin-top:15px;">Kembali ke Login</button>
+        </div>
+    </div>
+
     <!-- Modal Template Marketplace -->
     <div id="templateModal" class="modal">
         <div class="modal-card">
@@ -147,10 +205,8 @@
             <div id="templatePaymentSection" style="display:none; margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 20px;">
                 <p>💎 <strong id="selectedTemplateName"></strong> seharga <strong id="selectedTemplatePrice">0</strong> credits</p>
                 <p style="font-size: 12px;">Saldo kamu: <span id="userBalance">0</span> credits</p>
-                <div id="paymentActions">
-                    <button id="confirmPurchaseBtn" class="btn-warning" style="margin-top: 10px;">Beli Sekarang</button>
-                    <button id="cancelPurchaseBtn" class="btn-outline" style="margin-top: 10px;">Batal</button>
-                </div>
+                <button id="confirmPurchaseBtn" class="btn-warning" style="margin-top: 10px;">Beli Sekarang</button>
+                <button id="cancelPurchaseBtn" class="btn-outline" style="margin-top: 10px;">Batal</button>
             </div>
             <div id="topupSection" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
                 <p><i class="fas fa-coins"></i> <strong>Top Up Credits</strong></p>
@@ -202,6 +258,8 @@
         let pendingOtpEmail = null;
         let generatedOtp = null;
         let selectedTemplateForPurchase = null;
+        let resetPendingEmail = null;
+        let resetGeneratedOtp = null;
 
         // Helper functions
         function showToast(msg) {
@@ -260,6 +318,15 @@
             });
         }
 
+        function updateUserPassword(userId, newPassword) {
+            return new Promise((resolve) => {
+                if (!database) return resolve({ success: false });
+                database.ref('users/' + userId).update({ password: newPassword, lastUpdated: new Date().toISOString() }, (err) => {
+                    resolve({ success: !err });
+                });
+            });
+        }
+
         function registerUser(username, email, displayName) {
             return new Promise((resolve) => {
                 if (!database) return resolve({ success: false, error: 'Database tidak terhubung' });
@@ -272,6 +339,7 @@
                         id: 'u_' + Date.now(),
                         username: username,
                         email: email,
+                        password: '', // tidak dipakai untuk login OTP
                         isAdmin: false,
                         balance: 0,
                         purchasedTemplates: ['default'],
@@ -337,22 +405,27 @@
             }
         }
 
-        // OTP
+        // OTP untuk Login
         function generateOtp() { return Math.floor(100000 + Math.random() * 900000).toString(); }
         
-        async function sendEmailOtp(email, otp, name) {
+        async function sendEmailOtp(email, otp, name, type = 'login') {
+            const subject = type === 'reset' ? 'Reset Password LinkTree Pro' : 'Kode OTP Login LinkTree Pro';
+            const message = type === 'reset' 
+                ? `Kode OTP untuk reset password Anda: ${otp}. Jangan berikan kode ini ke siapapun.`
+                : `Kode OTP login Anda: ${otp}. Jangan berikan kode ini ke siapapun.`;
             try {
                 await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, { 
                     to_email: email, 
                     otp_code: otp, 
-                    display_name: name 
+                    display_name: name,
+                    message: message
                 });
-                showToast(`✅ Kode OTP dikirim ke ${email}`);
+                showToast(`✅ Kode ${type === 'reset' ? 'reset' : 'OTP'} dikirim ke ${email}`);
                 return true;
             } catch(e) {
                 console.error("EmailJS error:", e);
-                alert(`🔐 KODE OTP ANDA: ${otp}\n\n(Gagal kirim email, gunakan kode ini untuk login)`);
-                showToast(`⚠️ Kode OTP: ${otp}`);
+                alert(`🔐 KODE ${type === 'reset' ? 'RESET' : 'OTP'}: ${otp}\n\n(Gagal kirim email, gunakan kode ini)`);
+                showToast(`⚠️ Kode: ${otp}`);
                 return true;
             }
         }
@@ -365,7 +438,7 @@
             }
             pendingOtpEmail = email;
             generatedOtp = generateOtp();
-            return await sendEmailOtp(email, generatedOtp, user.displayName);
+            return await sendEmailOtp(email, generatedOtp, user.displayName, 'login');
         }
 
         async function verifyOtpAndLogin(otpCode) {
@@ -379,6 +452,43 @@
                     closeModals();
                     renderApp();
                     showToast(`✨ Selamat datang ${user.displayName}`);
+                    return true;
+                }
+            }
+            showToast('❌ Kode OTP salah');
+            return false;
+        }
+
+        // RESET PASSWORD FUNCTIONS
+        async function requestResetOtp(email) {
+            let user = await getUserByEmail(email);
+            if (!user) {
+                showToast('❌ Email tidak terdaftar');
+                return false;
+            }
+            resetPendingEmail = email;
+            resetGeneratedOtp = generateOtp();
+            return await sendEmailOtp(email, resetGeneratedOtp, user.displayName, 'reset');
+        }
+
+        async function verifyResetOtpAndChangePassword(otpCode, newPassword, confirmPassword) {
+            if (newPassword !== confirmPassword) {
+                showToast('❌ Password baru tidak cocok');
+                return false;
+            }
+            if (newPassword.length < 4) {
+                showToast('❌ Password minimal 4 karakter');
+                return false;
+            }
+            if (otpCode === resetGeneratedOtp && resetPendingEmail) {
+                let user = await getUserByEmail(resetPendingEmail);
+                if (user) {
+                    // Update password di database (field password untuk backup, tapi login tetap OTP)
+                    await updateUserPassword(user.id, newPassword);
+                    showToast('✅ Password berhasil direset! Silakan login dengan OTP biasa.');
+                    resetPendingEmail = null;
+                    resetGeneratedOtp = null;
+                    document.getElementById('resetPasswordModal').classList.remove('show');
                     return true;
                 }
             }
@@ -465,12 +575,10 @@
                     const template = templates.find(t => t.id === templateId);
                     
                     if (price === 0) {
-                        // Apply free template
                         applyAndSaveTemplate(template);
                         showToast(`✅ Template ${template.name} diterapkan!`);
                         closeTemplateModal();
                     } else {
-                        // Show purchase UI
                         selectedTemplateForPurchase = template;
                         document.getElementById('selectedTemplateName').innerText = templateName;
                         document.getElementById('selectedTemplatePrice').innerText = price;
@@ -484,12 +592,10 @@
         }
         
         function applyAndSaveTemplate(template) {
-            // Apply CSS to live preview
             const cssTextarea = document.getElementById('customCSS');
             if (cssTextarea) {
                 cssTextarea.value = template.css;
             }
-            // Also save to user data
             updateUser(currentUser.id, { 
                 customCSS: template.css,
                 activeTemplate: template.id
@@ -497,7 +603,7 @@
                 currentUser.customCSS = template.css;
                 currentUser.activeTemplate = template.id;
                 showToast(`✅ Template ${template.name} diterapkan!`);
-                renderUserSettings(); // Refresh to show updated preview
+                renderUserSettings();
             });
         }
         
@@ -520,14 +626,10 @@
             });
             
             showToast(`✅ Template ${selectedTemplateForPurchase.name} berhasil dibeli!`);
-            
-            // Apply the template immediately after purchase
             applyAndSaveTemplate(selectedTemplateForPurchase);
             
             document.getElementById('templatePaymentSection').style.display = 'none';
             selectedTemplateForPurchase = null;
-            
-            // Refresh user data
             currentUser = await getUserByUsername(currentUser.username);
             closeTemplateModal();
         }
@@ -541,6 +643,44 @@
         function openTopupModal() {
             document.getElementById('topupModal').classList.add('show');
             document.getElementById('currentBalanceTopup').innerText = currentUser.balance || 0;
+        }
+
+        // Live Chat Functions
+        let chatMessages = [];
+        const ADMIN_WHATSAPP = "6281234567890"; // Ganti dengan nomor admin
+
+        function addChatMessage(text, isUser = false) {
+            const chatBody = document.getElementById('chatBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+            messageDiv.innerHTML = `<div class="chat-bubble">${escapeHtml(text)}</div>`;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+            
+            // Save to localStorage
+            chatMessages.push({ text, isUser, time: new Date().toISOString() });
+            localStorage.setItem(`chat_${currentUser?.id || 'guest'}`, JSON.stringify(chatMessages.slice(-20)));
+        }
+
+        async function sendChatMessage(message) {
+            if (!message.trim()) return;
+            addChatMessage(message, true);
+            
+            // Send to admin via WhatsApp (simulate)
+            const userInfo = currentUser ? `User: ${currentUser.username} (${currentUser.email})` : 'Guest User';
+            const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(`[LinkTree Pro Live Chat]\n\n${userInfo}\n\nPesan: ${message}\n\nWaktu: ${new Date().toLocaleString()}`)}`;
+            
+            // Auto response
+            setTimeout(() => {
+                addChatMessage("📱 Pesan telah diterima. Admin akan merespon dalam beberapa menit. Sementara itu, kamu juga bisa langsung chat via WhatsApp dengan klik tombol hijau di bawah.", false);
+            }, 500);
+            
+            document.getElementById('chatInput').value = '';
+        }
+
+        function toggleChatPanel() {
+            const panel = document.getElementById('chatPanel');
+            panel.classList.toggle('show');
         }
 
         // Render User Settings
@@ -576,7 +716,6 @@
             let previewUrl = getPreviewUrl(currentUser.username);
             let lastUpdatedText = formatLastUpdated(currentUser.lastUpdated);
             
-            // Apply active template CSS to preview
             const activeTemplate = templates.find(t => t.id === currentUser.activeTemplate) || templates[0];
             const previewCSS = currentUser.customCSS || activeTemplate.css || '';
             
@@ -847,12 +986,15 @@
         }
 
         function openModal(type) {
-            document.getElementById(type === 'login' ? 'loginModal' : 'registerModal').classList.add('show');
+            if (type === 'login') document.getElementById('loginModal').classList.add('show');
+            else if (type === 'register') document.getElementById('registerModal').classList.add('show');
+            else if (type === 'reset') document.getElementById('resetPasswordModal').classList.add('show');
         }
 
         function closeModals() {
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
             document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('resetOtpSection').style.display = 'none';
         }
 
         // Event listeners for modals
@@ -880,6 +1022,30 @@
                 alert(res.error);
             }
         });
+        
+        // Reset Password Event Listeners
+        document.getElementById('forgotPasswordBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeModals();
+            openModal('reset');
+        });
+        document.getElementById('sendResetOtpBtn')?.addEventListener('click', async () => {
+            let email = document.getElementById('resetEmail').value;
+            if (!email) return alert('Masukkan email');
+            let ok = await requestResetOtp(email);
+            if (ok) document.getElementById('resetOtpSection').style.display = 'block';
+        });
+        document.getElementById('verifyResetOtpBtn')?.addEventListener('click', async () => {
+            let otp = document.getElementById('resetOtpCode').value;
+            let newPass = document.getElementById('newPassword').value;
+            let confirmPass = document.getElementById('confirmPassword').value;
+            await verifyResetOtpAndChangePassword(otp, newPass, confirmPass);
+        });
+        document.getElementById('closeResetModal')?.addEventListener('click', () => {
+            document.getElementById('resetPasswordModal').classList.remove('show');
+            openModal('login');
+        });
+        
         document.getElementById('showRegisterBtn')?.addEventListener('click', (e) => {
             e.preventDefault();
             closeModals();
@@ -892,6 +1058,17 @@
         });
         document.getElementById('homeLogo')?.addEventListener('click', () => {
             window.location.href = 'index.html';
+        });
+        
+        // Live Chat Events
+        document.getElementById('liveChatBtn')?.addEventListener('click', toggleChatPanel);
+        document.getElementById('chatCloseBtn')?.addEventListener('click', toggleChatPanel);
+        document.getElementById('chatSendBtn')?.addEventListener('click', () => {
+            const input = document.getElementById('chatInput');
+            sendChatMessage(input.value);
+        });
+        document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage(e.target.value);
         });
         
         // Modal close buttons
