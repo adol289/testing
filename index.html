@@ -408,27 +408,33 @@
         // OTP untuk Login
         function generateOtp() { return Math.floor(100000 + Math.random() * 900000).toString(); }
         
-        async function sendEmailOtp(email, otp, name, type = 'login') {
-            const subject = type === 'reset' ? 'Reset Password LinkTree Pro' : 'Kode OTP Login LinkTree Pro';
-            const message = type === 'reset' 
-                ? `Kode OTP untuk reset password Anda: ${otp}. Jangan berikan kode ini ke siapapun.`
-                : `Kode OTP login Anda: ${otp}. Jangan berikan kode ini ke siapapun.`;
-            try {
-                await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, { 
-                    to_email: email, 
-                    otp_code: otp, 
-                    display_name: name,
-                    message: message
-                });
-                showToast(`✅ Kode ${type === 'reset' ? 'reset' : 'OTP'} dikirim ke ${email}`);
-                return true;
-            } catch(e) {
-                console.error("EmailJS error:", e);
-                alert(`🔐 KODE ${type === 'reset' ? 'RESET' : 'OTP'}: ${otp}\n\n(Gagal kirim email, gunakan kode ini)`);
-                showToast(`⚠️ Kode: ${otp}`);
-                return true;
-            }
+        // EmailJS send - versi fix, GMAIL wajib terkirim
+async function sendEmailOtp(email, otp, name, type = 'login') {
+    try {
+        const templateParams = {
+            to_email: email,
+            otp_code: otp,
+            display_name: name,
+            message: type === 'reset' 
+                ? `🔐 Kode OTP untuk reset password Anda: ${otp}. Jangan berikan kode ini ke siapapun.`
+                : `🔐 Kode OTP login Anda: ${otp}. Jangan berikan kode ini ke siapapun.`,
+            subject: type === 'reset' ? 'Reset Password LinkTree Pro' : 'Kode OTP Login LinkTree Pro'
+        };
+        
+        const response = await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams);
+        
+        if (response.status === 200) {
+            showToast(`✅ Kode OTP dikirim ke ${email}`);
+            return true;
+        } else {
+            throw new Error('Gagal kirim email');
         }
+    } catch (error) {
+        console.error("EmailJS error detail:", error);
+        showToast(`❌ Gagal mengirim email ke ${email}. Coba lagi atau hubungi admin.`);
+        return false;
+    }
+}
 
         async function requestOtp(email) {
             let user = await getUserByEmail(email);
