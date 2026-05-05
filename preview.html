@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkTree Pro – Preview</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -14,11 +14,11 @@
         body.light-mode { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
         body.dark-mode { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); color: #e0e0e0; }
         body.custom-bg { background: var(--custom-bg) !important; background-size: cover !important; background-position: center !important; background-attachment: fixed !important; }
-        .navbar { background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); position: sticky; top: 0; z-index: 200; }
+        .navbar { background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); }
         .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 24px; font-weight: 800; cursor: pointer; }
         .logo i { color: #1DB954; margin-right: 8px; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 500; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 20px; border-radius: 40px; cursor: pointer; }
         .main-container { max-width: 550px; margin: 30px auto; padding: 0 20px; }
         .preview-avatar { width: 120px; height: 120px; border-radius: 60px; background: rgba(255,255,255,0.2); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .preview-avatar i { font-size: 60px; }
@@ -30,18 +30,17 @@
         .footer { text-align: center; font-size: 11px; opacity: 0.5; margin-top: 40px; padding: 20px; }
         .loading { text-align: center; padding: 50px; }
         .error { text-align: center; padding: 50px; color: #ff8888; }
+        .music-embed { margin-top: 25px; }
     </style>
 </head>
 <body class="light-mode">
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo" id="homeLogo"><i class="fas fa-link"></i> Link<span style="background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;background-clip:text;color:transparent;">Pro</span></div>
-            <button id="backToDashboardBtn" class="btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</button>
+            <button id="backBtn" class="btn-outline"><i class="fas fa-arrow-left"></i> Beranda</button>
         </div>
     </nav>
-    <div class="main-container" id="mainContainer">
-        <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Memuat LinkTree...</div>
-    </div>
+    <div class="main-container" id="mainContainer"><div class="loading"><i class="fas fa-spinner fa-pulse"></i> Memuat...</div></div>
 
     <script>
         const firebaseConfig = {
@@ -54,109 +53,66 @@
             appId: "1:551602488147:web:67fa5a814a9fb2a688d7a6"
         };
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const db = firebase.database();
 
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
-
-        function applyTheme(user) {
-            let theme = user?.theme || 'light';
-            let bg = user?.bgImage || '';
-            if (bg) {
-                document.body.style.setProperty('--custom-bg', `url('${bg}')`);
-                document.body.className = 'custom-bg';
-            } else {
-                document.body.className = theme === 'dark' ? 'dark-mode' : 'light-mode';
-                document.body.style.removeProperty('--custom-bg');
-            }
-        }
-
-        async function getUserByEmail(email) {
-            return new Promise((resolve) => {
-                database.ref('users').orderByChild('email').equalTo(email).once('value', (snap) => {
-                    if (!snap.exists()) resolve(null);
-                    else {
-                        let user = null;
-                        snap.forEach((c) => { user = c.val(); });
-                        const { password, ...rest } = user;
-                        resolve(rest);
-                    }
+        function getUserByUsername(username) {
+            return new Promise(resolve=>{
+                db.ref('users').orderByChild('username').equalTo(username).once('value', snap=>{
+                    if(!snap.exists()) resolve(null);
+                    else { let user=null; snap.forEach(c=>user=c.val()); const{password,...rest}=user; resolve(rest); }
                 });
             });
         }
 
-        async function loadPreview() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const email = urlParams.get('email');
-            
-            if (!email) {
-                document.getElementById('mainContainer').innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> Email tidak ditemukan di URL</div>`;
-                return;
+        function getMusicEmbed(url){
+            if(!url) return '';
+            if(url.includes('youtube.com/watch') || url.includes('youtu.be')){
+                let videoId='';
+                if(url.includes('youtu.be/')) videoId=url.split('youtu.be/')[1]?.split('?')[0];
+                else if(url.includes('watch?v=')) videoId=url.split('watch?v=')[1]?.split('&')[0];
+                if(videoId) return `<iframe src="https://www.youtube.com/embed/${videoId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
             }
-            
-            const user = await getUserByEmail(email);
-            
-            if (!user) {
-                document.getElementById('mainContainer').innerHTML = `<div class="error"><i class="fas fa-user-slash"></i> User tidak ditemukan</div>`;
-                return;
+            if(url.includes('youtube.com/playlist')){
+                let listId=url.split('list=')[1]?.split('&')[0];
+                if(listId) return `<iframe src="https://www.youtube.com/embed/videoseries?list=${listId}" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allowfullscreen></iframe>`;
             }
-            
+            if(url.includes('spotify.com')){
+                let spotifyId=url; if(spotifyId.includes('playlist/')){ let m=spotifyId.match(/playlist\/([a-zA-Z0-9]+)/); if(m) spotifyId=m[1]; }
+                return `<iframe src="https://open.spotify.com/embed/playlist/${spotifyId}" style="border-radius:20px;width:100%;height:152px;" frameborder="0" allow="encrypted-media"></iframe>`;
+            }
+            return `<div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:20px; text-align:center;"><i class="fas fa-music"></i> <a href="${url}" target="_blank" style="color:white;">Buka Musik</a></div>`;
+        }
+
+        function applyTheme(user) { let theme=user?.theme||'light', bg=user?.bgImage||''; if(bg){ document.body.style.setProperty('--custom-bg',`url('${bg}')`); document.body.className='custom-bg'; } else document.body.className=theme==='dark'?'dark-mode':'light-mode'; }
+
+        async function loadPreview(){
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('user');
+            if(!username){ document.getElementById('mainContainer').innerHTML='<div class="error"><i class="fas fa-exclamation-circle"></i> Username tidak ditemukan</div>'; return; }
+            const user = await getUserByUsername(username);
+            if(!user){ document.getElementById('mainContainer').innerHTML='<div class="error"><i class="fas fa-user-slash"></i> User tidak ditemukan</div>'; return; }
             applyTheme(user);
-            
-            let bioArr = (user.bio || '').split(',').map(s => s.trim()).filter(s => s);
+            let bioArr = (user.bio||'').split(',').map(s=>s.trim());
             let avatarHtml = user.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut"></i>';
-            
             let linksHtml = '';
-            const platforms = ['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'];
-            platforms.forEach(p => {
-                let url = user.links?.[p];
-                if (url && url.trim()) {
-                    linksHtml += `<a href="${url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fab fa-${p}"></i> <span>${p.charAt(0).toUpperCase() + p.slice(1)}</span></div><i class="fas fa-arrow-right"></i></a>`;
-                }
-            });
-            
-            if (user.customLinks) {
-                user.customLinks.forEach(l => {
-                    if (l.name && l.url) {
-                        linksHtml += `<a href="${l.url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fas fa-link"></i> <span>${escapeHtml(l.name)}</span></div><i class="fas fa-arrow-right"></i></a>`;
-                    }
-                });
-            }
-            
-            let spotifyHtml = '';
-            if (user.spotifyId) {
-                let id = user.spotifyId;
-                if (id.includes('playlist/')) {
-                    let m = id.match(/playlist\/([a-zA-Z0-9]+)/);
-                    if (m) id = m[1];
-                }
-                spotifyHtml = `<div style="margin-top:25px;"><iframe src="https://open.spotify.com/embed/playlist/${id}" style="border-radius:20px;width:100%;height:152px;" frameborder="0" allow="encrypted-media"></iframe></div>`;
-            }
-            
+            const platforms = ['instagram','tiktok','youtube','github','whatsapp','discord'];
+            platforms.forEach(p=>{ let url=user.links?.[p]; if(url?.trim()) linksHtml+=`<a href="${url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></a>`; });
+            if(user.customLinks) user.customLinks.forEach(l=>{ if(l.name && l.url) linksHtml+=`<a href="${l.url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fas fa-link"></i> ${escapeHtml(l.name)}</div><i class="fas fa-arrow-right"></i></a>`; });
+            let musicEmbed = getMusicEmbed(user.musicUrl);
             document.getElementById('mainContainer').innerHTML = `
                 <div>
-                    <div style="text-align:center;">
-                        <div class="preview-avatar">${avatarHtml}</div>
-                        <div class="preview-name">${escapeHtml(user.displayName)}</div>
-                        <div class="preview-bio">${escapeHtml(bioArr[0] || '')}</div>
-                    </div>
+                    <div style="text-align:center;"><div class="preview-avatar">${avatarHtml}</div><div class="preview-name">${escapeHtml(user.displayName)}</div><div class="preview-bio">${escapeHtml(bioArr[0]||'')}</div></div>
                     ${linksHtml}
-                    ${spotifyHtml}
-                    <div class="footer">
-                        <i class="fas fa-leaf"></i> LinkTree Pro — created with Firebase
-                    </div>
+                    ${musicEmbed ? `<div class="music-embed">${musicEmbed}</div>` : ''}
+                    <div class="footer"><i class="fas fa-leaf"></i> LinkTree Pro — share your world</div>
                 </div>
             `;
         }
-        
-        document.getElementById('backToDashboardBtn')?.addEventListener('click', () => {
-            window.location.href = 'index.html';
-        });
-        
-        document.getElementById('homeLogo')?.addEventListener('click', () => {
-            window.location.href = 'index.html';
-        });
-        
+
+        function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+        document.getElementById('backBtn')?.addEventListener('click',()=>{ window.location.href='index.html'; });
+        document.getElementById('homeLogo')?.addEventListener('click',()=>{ window.location.href='index.html'; });
         loadPreview();
     </script>
 </body>
-</html>
+</html> 
