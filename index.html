@@ -6,6 +6,9 @@
     <title>LinkTree - Xtxz Putra</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; min-height: 100vh; transition: all 0.3s; }
@@ -17,12 +20,16 @@
         .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 24px; font-weight: 700; cursor: pointer; }
         .logo i { color: #1DB954; margin-right: 10px; }
+        .logo span { background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .main-container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; min-height: calc(100vh - 80px); }
         
         .welcome-section { text-align: center; padding: 60px 20px; }
         .welcome-section h1 { font-size: 48px; margin-bottom: 20px; }
-        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 30px; border-radius: 50px; border: none; cursor: pointer; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 30px; border-radius: 50px; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 30px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; transition: transform 0.2s; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 30px; border-radius: 50px; cursor: pointer; transition: 0.3s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+        .btn-danger { background: rgba(255,0,0,0.5); color: white; padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; }
         
         .settings-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         .form-section { background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; max-height: 85vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
@@ -32,7 +39,7 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 14px; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
         .section-title { font-size: 18px; margin: 20px 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); }
         
         .preview-avatar { width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -40,92 +47,260 @@
         .preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .preview-name { text-align: center; font-size: 24px; margin-bottom: 5px; }
         .preview-bio { text-align: center; font-size: 13px; opacity: 0.8; margin-bottom: 20px; }
-        .preview-link { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 50px; padding: 12px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: white; transition: 0.3s; }
+        .preview-link { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 50px; padding: 12px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: white; transition: 0.3s; cursor: pointer; }
         .preview-link:hover { transform: translateX(5px); background: rgba(255,255,255,0.2); }
         .preview-link-left { display: flex; align-items: center; gap: 12px; }
         
-        .save-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .save-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; margin-top: 20px; transition: opacity 0.2s; }
+        .save-btn:hover { opacity: 0.9; }
         .url-info { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 20px; text-align: center; }
-        .url-info code { background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; display: inline-block; margin: 10px 0; word-break: break-all; }
+        .url-info code { background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; display: inline-block; margin: 10px 0; word-break: break-all; font-size: 12px; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
         .modal.show { display: flex; }
         .modal-content { background: #1a1f3a; border-radius: 20px; max-width: 400px; width: 100%; padding: 30px; text-align: center; }
         .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; }
+        .modal-content a { color: #667eea; text-decoration: none; }
         
-        @media (max-width: 900px) { .settings-layout { grid-template-columns: 1fr; } .preview-section { position: static; } }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .admin-panel { margin-top: 30px; background: rgba(0,0,0,0.4); border-radius: 20px; padding: 20px; }
+        .user-card { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        
+        @media (max-width: 900px) { .settings-layout { grid-template-columns: 1fr; } .preview-section { position: static; } .welcome-section h1 { font-size: 32px; } }
+        
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1DB954; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1000; animation: fadeInOut 2s ease; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translateX(-50%) translateY(20px); } 15% { opacity: 1; transform: translateX(-50%) translateY(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
     </style>
 </head>
 <body class="light-mode">
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo" id="homeLogo"><i class="fas fa-link"></i> LinkTree<span style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">Vercel</span></div>
+            <div class="logo" id="homeLogo">
+                <i class="fas fa-link"></i> LinkTree<span>Firebase</span>
+            </div>
             <div class="nav-links" id="navLinks"></div>
         </div>
     </nav>
     <div class="main-container" id="mainContainer"></div>
 
-    <!-- Modal -->
-    <div id="loginModal" class="modal"><div class="modal-content"><h2>Login</h2><input type="text" id="loginUsername" placeholder="Username"><input type="password" id="loginPassword" placeholder="Password"><button id="doLoginBtn" class="save-btn">Login</button><p>Belum punya akun? <a href="#" id="showRegisterBtn">Daftar</a></p><p style="margin-top:10px;font-size:12px;">Demo: admin / admin123</p></div></div>
-    <div id="registerModal" class="modal"><div class="modal-content"><h2>Daftar</h2><input type="text" id="regUsername" placeholder="Username"><input type="password" id="regPassword" placeholder="Password"><input type="text" id="regDisplayName" placeholder="Nama Tampilan"><button id="doRegisterBtn" class="save-btn">Daftar</button><p>Sudah punya akun? <a href="#" id="showLoginFromRegBtn">Login</a></p></div></div>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button id="doLoginBtn" class="save-btn">Login</button>
+            <p style="margin-top:15px;">Belum punya akun? <a href="#" id="showRegisterBtn">Daftar</a></p>
+            <p style="margin-top:10px;font-size:12px;opacity:0.7;">Demo: admin / admin123</p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-user-plus"></i> Daftar</h2>
+            <input type="text" id="regUsername" placeholder="Username" autocomplete="off">
+            <input type="password" id="regPassword" placeholder="Password">
+            <input type="text" id="regDisplayName" placeholder="Nama Tampilan (opsional)">
+            <button id="doRegisterBtn" class="save-btn">Daftar</button>
+            <p style="margin-top:15px;">Sudah punya akun? <a href="#" id="showLoginFromRegBtn">Login</a></p>
+        </div>
+    </div>
 
     <script>
         // ============================================
-        // API CONFIG - GANTI DENGAN URL VERCEL KAMU
+        // FIREBASE CONFIGURATION (SUDAH DIISI)
         // ============================================
-        const API_BASE = window.location.origin;
-        
+        const firebaseConfig = {
+            apiKey: "AIzaSyD10-8FaZa_gO_2-QBs0HLvpqWEIjC30oE",
+            authDomain: "linktree-xtxz.firebaseapp.com",
+            databaseURL: "https://linktree-xtxz-default-rtdb.firebaseio.com",
+            projectId: "linktree-xtxz",
+            storageBucket: "linktree-xtxz.firebasestorage.app",
+            messagingSenderId: "551602488147",
+            appId: "1:551602488147:web:67fa5a814a9fb2a688d7a6",
+            measurementId: "G-Y4SX65ZM1K"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         let currentUser = null;
 
-        async function apiCall(endpoint, method = 'POST', body = {}) {
-            const response = await fetch(`${API_BASE}/api/${endpoint}`, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: method !== 'GET' ? JSON.stringify(body) : undefined
+        // Helper functions
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function showLoading(btn) { if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Loading...'; } }
+        function hideLoading(btn, text) { if (btn) { btn.disabled = false; btn.innerHTML = text; } }
+
+        // ============================================
+        // FIREBASE OPERATIONS
+        // ============================================
+        
+        // REGISTER
+        async function register(username, password, displayName) {
+            return new Promise((resolve) => {
+                const usersRef = database.ref('users');
+                usersRef.orderByChild('username').equalTo(username).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        resolve({ success: false, error: '❌ Username sudah digunakan!' });
+                        return;
+                    }
+                    
+                    const newUser = {
+                        id: 'user_' + Date.now(),
+                        username: username,
+                        password: password,
+                        isAdmin: false,
+                        displayName: displayName || '@' + username,
+                        bio: 'Selamat datang di LinkTree saya!',
+                        avatar: null,
+                        links: { instagram: '', tiktok: '', youtube: '', github: '', whatsapp: '', discord: '' },
+                        backTexts: { instagram: '@' + username, tiktok: '@' + username, youtube: username, github: username },
+                        customLinks: [],
+                        spotifyId: '',
+                        theme: 'light',
+                        bgImage: '',
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    usersRef.child(newUser.id).set(newUser, (error) => {
+                        if (error) resolve({ success: false, error: error.message });
+                        else resolve({ success: true, user: newUser });
+                    });
+                });
             });
-            return response.json();
         }
 
+        // LOGIN
         async function login(username, password) {
-            const result = await apiCall('auth', 'POST', { action: 'login', username, password });
-            if (result.success) {
-                currentUser = result.user;
-                localStorage.setItem('currentUserId', currentUser.id);
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                renderApp();
-                return true;
-            }
-            return false;
+            return new Promise((resolve) => {
+                const usersRef = database.ref('users');
+                usersRef.orderByChild('username').equalTo(username).once('value', (snapshot) => {
+                    if (!snapshot.exists()) {
+                        resolve({ success: false, error: '❌ Username tidak ditemukan!' });
+                        return;
+                    }
+                    
+                    let foundUser = null;
+                    snapshot.forEach((child) => {
+                        const user = child.val();
+                        if (user.password === password) foundUser = user;
+                    });
+                    
+                    if (foundUser) {
+                        const { password: _, ...userWithoutPass } = foundUser;
+                        resolve({ success: true, user: userWithoutPass });
+                    } else {
+                        resolve({ success: false, error: '❌ Password salah!' });
+                    }
+                });
+            });
         }
 
-        async function register(userData) {
-            const result = await apiCall('auth', 'POST', { action: 'register', userData });
-            return result.success;
+        // UPDATE USER
+        async function updateUser(userId, updates) {
+            return new Promise((resolve) => {
+                database.ref('users/' + userId).update(updates, (error) => {
+                    if (error) resolve({ success: false, error: error.message });
+                    else resolve({ success: true });
+                });
+            });
         }
 
-        async function updateUser(updates) {
-            const result = await apiCall('update', 'POST', { userId: currentUser.id, updates });
-            if (result.success) {
-                currentUser = result.user;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                renderApp();
-                return true;
-            }
-            return false;
-        }
-
+        // GET USER BY USERNAME
         async function getUserByUsername(username) {
-            const result = await apiCall(`user/${username}`, 'GET');
-            return result.success ? result.user : null;
+            return new Promise((resolve) => {
+                database.ref('users').orderByChild('username').equalTo(username).once('value', (snapshot) => {
+                    if (!snapshot.exists()) resolve(null);
+                    else {
+                        let user = null;
+                        snapshot.forEach((child) => { user = child.val(); });
+                        const { password, ...userWithoutPass } = user;
+                        resolve(userWithoutPass);
+                    }
+                });
+            });
         }
 
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUserId');
-            localStorage.removeItem('currentUser');
-            renderApp();
+        // GET ALL USERS (ADMIN ONLY)
+        async function getAllUsers() {
+            return new Promise((resolve) => {
+                database.ref('users').once('value', (snapshot) => {
+                    const users = [];
+                    snapshot.forEach((child) => {
+                        const user = child.val();
+                        const { password, ...userWithoutPass } = user;
+                        users.push(userWithoutPass);
+                    });
+                    resolve(users);
+                });
+            });
         }
 
+        // DELETE USER (ADMIN ONLY)
+        async function deleteUser(userId) {
+            return new Promise((resolve) => {
+                database.ref('users/' + userId).remove((error) => {
+                    if (error) resolve({ success: false, error: error.message });
+                    else resolve({ success: true });
+                });
+            });
+        }
+
+        // CREATE ADMIN (FIRST TIME ONLY)
+        async function createAdminIfNotExists() {
+            return new Promise((resolve) => {
+                const usersRef = database.ref('users');
+                usersRef.orderByChild('username').equalTo('admin').once('value', (snapshot) => {
+                    if (!snapshot.exists()) {
+                        const adminUser = {
+                            id: 'admin_1',
+                            username: 'admin',
+                            password: 'admin123',
+                            isAdmin: true,
+                            displayName: '@Xtxz Putra',
+                            bio: '🚀 Creator | Developer | Gamer,⚡ Roblox Exploit & Web Dev,🎮 Live everyday!,💻 Code is my passion',
+                            avatar: null,
+                            links: {
+                                instagram: 'https://instagram.com/xtxzputra',
+                                tiktok: 'https://tiktok.com/@xtxzputra',
+                                youtube: 'https://youtube.com/c/xtxzputra',
+                                github: 'https://github.com/xtxzputra',
+                                whatsapp: 'https://wa.me/6281234567890',
+                                discord: 'https://discord.gg/invite/xtxzputra'
+                            },
+                            backTexts: {
+                                instagram: '@xtxzputra',
+                                tiktok: '@xtxzputra',
+                                youtube: 'Xtxz Putra',
+                                github: 'github/xtxzputra'
+                            },
+                            customLinks: [],
+                            spotifyId: '3LR1I9C0C1Jzl6wJuS9int',
+                            theme: 'light',
+                            bgImage: '',
+                            createdAt: new Date().toISOString()
+                        };
+                        usersRef.child(adminUser.id).set(adminUser);
+                    }
+                    resolve();
+                });
+            });
+        }
+
+        // Apply theme
         function applyTheme(user) {
             const theme = user?.theme || 'light';
             const bgImage = user?.bgImage || '';
@@ -138,7 +313,24 @@
             }
         }
 
-        function renderLinkTreePage(user) {
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+
+        // Render LinkTree Page (Public)
+        async function renderLinkTreePage(username) {
+            const user = await getUserByUsername(username);
+            if (!user) {
+                document.getElementById('mainContainer').innerHTML = `
+                    <div class="welcome-section">
+                        <h1>😢 User Tidak Ditemukan</h1>
+                        <p>User dengan username "${username}" tidak ada di database.</p>
+                        <button onclick="window.location.href=''" class="btn-primary">Kembali ke Beranda</button>
+                    </div>
+                `;
+                return;
+            }
+            
             applyTheme(user);
             const bioArray = (user.bio || '').split(',').map(s => s.trim()).filter(s => s);
             let avatarHtml = user.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut"></i>';
@@ -160,7 +352,7 @@
                 }
             });
             
-            if (user.customLinks) {
+            if (user.customLinks && user.customLinks.length > 0) {
                 user.customLinks.forEach(link => {
                     if (link.name && link.url) {
                         linksHtml += `<a href="${link.url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fas fa-link"></i><span>${escapeHtml(link.name)}</span></div><i class="fas fa-arrow-right"></i></a>`;
@@ -187,7 +379,9 @@
                     </div>
                     <div style="margin-top:20px;">${linksHtml}</div>
                     ${spotifyHtml}
-                    <div class="footer" style="text-align:center;font-size:11px;opacity:0.6;margin-top:20px;padding:20px;"><i class="fas fa-link"></i> Made with LinkTree Vercel</div>
+                    <div class="footer" style="text-align:center;font-size:11px;opacity:0.6;margin-top:20px;padding:20px;">
+                        <i class="fas fa-link"></i> Made with LinkTree Firebase
+                    </div>
                 </div>
             `;
             
@@ -202,19 +396,25 @@
             }
         }
 
-        function renderSettingsPage() {
+        // Render Settings Page (Dashboard User)
+        async function renderSettingsPage() {
             if (!currentUser) {
                 renderApp();
                 return;
             }
+            
+            // Refresh user data from Firebase
+            const freshUser = await getUserByUsername(currentUser.username);
+            if (freshUser) currentUser = freshUser;
+            
             applyTheme(currentUser);
             const bioArray = (currentUser.bio || '').split(',').map(s => s.trim()).filter(s => s);
             
             const customLinksHtml = (currentUser.customLinks || []).map((link, idx) => `
                 <div style="display:flex;gap:10px;margin-bottom:10px;">
-                    <input type="text" placeholder="Nama Link" value="${escapeHtml(link.name)}" data-custom-name="${idx}" style="flex:1">
+                    <input type="text" placeholder="Nama Link (contoh: Website)" value="${escapeHtml(link.name)}" data-custom-name="${idx}" style="flex:1">
                     <input type="text" placeholder="URL" value="${escapeHtml(link.url)}" data-custom-url="${idx}" style="flex:2">
-                    <button data-custom-remove="${idx}" style="padding:0 15px;background:rgba(255,0,0,0.5);border:none;border-radius:8px;color:white;cursor:pointer;">✖</button>
+                    <button data-custom-remove="${idx}" style="padding:0 15px;background:rgba(255,0,0,0.5);border:none;border-radius:8px;color:white;cursor:pointer;font-size:16px;">✖</button>
                 </div>
             `).join('');
             
@@ -249,142 +449,347 @@
                 previewSpotifyHtml = `<div style="margin-top:20px;"><iframe src="https://open.spotify.com/embed/playlist/${spotifyId}?utm_source=generator" frameborder="0" allowfullscreen="" style="border-radius:12px;width:100%;height:152px;"></iframe></div>`;
             }
             
-            const userUrl = `${window.location.origin}?user=${currentUser.username}`;
+            const userUrl = `${window.location.origin}${window.location.pathname}?user=${currentUser.username}`;
+            
+            // Admin panel (hanya untuk admin)
+            let adminPanelHtml = '';
+            if (currentUser.isAdmin) {
+                const allUsers = await getAllUsers();
+                const nonAdminUsers = allUsers.filter(u => !u.isAdmin);
+                adminPanelHtml = `
+                    <div class="admin-panel">
+                        <h3><i class="fas fa-shield-alt"></i> Admin Panel</h3>
+                        <p>Total User: ${nonAdminUsers.length}</p>
+                        <div id="adminUserList">
+                            ${nonAdminUsers.length === 0 ? '<p style="opacity:0.6;">Belum ada user terdaftar</p>' : ''}
+                            ${nonAdminUsers.map(u => `
+                                <div class="user-card">
+                                    <div><strong>${escapeHtml(u.username)}</strong><br><small>${escapeHtml(u.displayName || '')}</small></div>
+                                    <div>
+                                        <button class="view-user" data-username="${u.username}" style="background:#1DB954;border:none;padding:5px 12px;border-radius:20px;color:white;cursor:pointer;">Lihat</button>
+                                        <button class="delete-user" data-userid="${u.id}" style="background:rgba(255,0,0,0.5);border:none;padding:5px 12px;border-radius:20px;color:white;cursor:pointer;margin-left:5px;">Hapus</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
             
             document.getElementById('mainContainer').innerHTML = `
                 <div class="settings-layout">
                     <div class="form-section">
-                        <h2><i class="fas fa-user-cog"></i> Edit Profile (Vercel Backend)</h2>
+                        <h2><i class="fas fa-user-cog"></i> Edit Profile</h2>
                         <div class="form-group">
                             <label>Foto Profile</label>
                             <div style="display:flex;gap:15px;align-items:center;">
-                                <div class="preview-avatar" id="avatarPreviewUpload" style="width:80px;height:80px;cursor:pointer;">${currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user"></i>'}</div>
+                                <div class="preview-avatar" id="avatarPreviewUpload" style="width:80px;height:80px;cursor:pointer;background:rgba(0,0,0,0.3);">${currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-camera" style="font-size:30px;"></i>'}</div>
                                 <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;">
                                 <button id="clearAvatarBtn" class="btn-outline" style="padding:8px 15px;">Hapus Foto</button>
                             </div>
                         </div>
-                        <div class="form-group"><label>Nama Tampilan</label><input type="text" id="displayName" value="${escapeHtml(currentUser.displayName || '')}"></div>
-                        <div class="form-group"><label>Bio (pisahkan dengan koma)</label><textarea id="bio" rows="3">${escapeHtml(currentUser.bio || '')}</textarea></div>
+                        <div class="form-group">
+                            <label>Nama Tampilan</label>
+                            <input type="text" id="displayName" value="${escapeHtml(currentUser.displayName || '')}" placeholder="@username">
+                        </div>
+                        <div class="form-group">
+                            <label>Bio (pisahkan dengan koma , untuk efek typing)</label>
+                            <textarea id="bio" rows="3" placeholder="Contoh: Creator,Developer,Gamer">${escapeHtml(currentUser.bio || '')}</textarea>
+                        </div>
                         <div class="section-title">Sosial Media</div>
-                        <div class="form-group"><label>Instagram URL</label><input type="text" id="instagramUrl" value="${escapeHtml(currentUser.links?.instagram || '')}"></div>
-                        <div class="form-group"><label>TikTok URL</label><input type="text" id="tiktokUrl" value="${escapeHtml(currentUser.links?.tiktok || '')}"></div>
-                        <div class="form-group"><label>YouTube URL</label><input type="text" id="youtubeUrl" value="${escapeHtml(currentUser.links?.youtube || '')}"></div>
-                        <div class="form-group"><label>GitHub URL</label><input type="text" id="githubUrl" value="${escapeHtml(currentUser.links?.github || '')}"></div>
-                        <div class="form-group"><label>WhatsApp URL</label><input type="text" id="whatsappUrl" value="${escapeHtml(currentUser.links?.whatsapp || '')}"></div>
-                        <div class="form-group"><label>Discord URL</label><input type="text" id="discordUrl" value="${escapeHtml(currentUser.links?.discord || '')}"></div>
-                        <div class="section-title">Username di Card Belakang</div>
-                        <div class="form-group"><label>Instagram</label><input type="text" id="backInstagram" value="${escapeHtml(currentUser.backTexts?.instagram || '')}"></div>
-                        <div class="form-group"><label>TikTok</label><input type="text" id="backTiktok" value="${escapeHtml(currentUser.backTexts?.tiktok || '')}"></div>
-                        <div class="form-group"><label>YouTube</label><input type="text" id="backYoutube" value="${escapeHtml(currentUser.backTexts?.youtube || '')}"></div>
-                        <div class="form-group"><label>GitHub</label><input type="text" id="backGithub" value="${escapeHtml(currentUser.backTexts?.github || '')}"></div>
+                        <div class="form-group"><label>Instagram URL</label><input type="text" id="instagramUrl" value="${escapeHtml(currentUser.links?.instagram || '')}" placeholder="https://instagram.com/..."></div>
+                        <div class="form-group"><label>TikTok URL</label><input type="text" id="tiktokUrl" value="${escapeHtml(currentUser.links?.tiktok || '')}" placeholder="https://tiktok.com/@..."></div>
+                        <div class="form-group"><label>YouTube URL</label><input type="text" id="youtubeUrl" value="${escapeHtml(currentUser.links?.youtube || '')}" placeholder="https://youtube.com/c/..."></div>
+                        <div class="form-group"><label>GitHub URL</label><input type="text" id="githubUrl" value="${escapeHtml(currentUser.links?.github || '')}" placeholder="https://github.com/..."></div>
+                        <div class="form-group"><label>WhatsApp URL</label><input type="text" id="whatsappUrl" value="${escapeHtml(currentUser.links?.whatsapp || '')}" placeholder="https://wa.me/628xxxx"></div>
+                        <div class="form-group"><label>Discord URL</label><input type="text" id="discordUrl" value="${escapeHtml(currentUser.links?.discord || '')}" placeholder="https://discord.gg/..."></div>
+                        <div class="section-title">Username di Card Belakang (Flip Card)</div>
+                        <div class="form-group"><label>Instagram @username</label><input type="text" id="backInstagram" value="${escapeHtml(currentUser.backTexts?.instagram || '')}"></div>
+                        <div class="form-group"><label>TikTok @username</label><input type="text" id="backTiktok" value="${escapeHtml(currentUser.backTexts?.tiktok || '')}"></div>
+                        <div class="form-group"><label>YouTube Channel</label><input type="text" id="backYoutube" value="${escapeHtml(currentUser.backTexts?.youtube || '')}"></div>
+                        <div class="form-group"><label>GitHub Username</label><input type="text" id="backGithub" value="${escapeHtml(currentUser.backTexts?.github || '')}"></div>
                         <div class="section-title">Custom Link</div>
                         <div id="customLinksForm">${customLinksHtml}</div>
-                        <button id="addCustomLinkBtn" class="btn-outline" style="width:100%;padding:10px;margin-top:10px;"><i class="fas fa-plus"></i> Tambah Link</button>
+                        <button id="addCustomLinkBtn" class="btn-outline" style="width:100%;padding:10px;margin-top:10px;"><i class="fas fa-plus"></i> Tambah Link Custom</button>
                         <div class="section-title">Spotify Playlist</div>
-                        <div class="form-group"><label>Playlist ID atau URL</label><input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId || '')}"></div>
+                        <div class="form-group">
+                            <label>Playlist ID atau URL</label>
+                            <input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId || '')}" placeholder="Contoh: 37i9dQZF1DXcBWIGoYBM5M">
+                        </div>
                         <div class="section-title">Tema & Background</div>
-                        <div class="form-group"><label>Mode Tema</label><select id="themeMode"><option value="light" ${currentUser.theme === 'light' ? 'selected' : ''}>Light Mode</option><option value="dark" ${currentUser.theme === 'dark' ? 'selected' : ''}>Dark Mode</option></select></div>
-                        <div class="form-group"><label>Background Custom (URL)</label><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage || '')}"></div>
-                        <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan ke Server</button>
-                        <div class="url-info"><i class="fas fa-link"></i> LinkTree Kamu:<br><code id="userUrl">${userUrl}</code><br><button id="copyUrlBtn" class="btn-outline" style="margin-top:10px;"><i class="fas fa-copy"></i> Copy URL</button><button id="viewLinktreeBtn" class="btn-success" style="margin-left:10px;background:#1DB954;border:none;padding:8px 15px;border-radius:50px;color:white;cursor:pointer;"><i class="fas fa-external-link-alt"></i> Buka</button></div>
+                        <div class="form-group">
+                            <label>Mode Tema</label>
+                            <select id="themeMode">
+                                <option value="light" ${currentUser.theme === 'light' ? 'selected' : ''}>Light Mode</option>
+                                <option value="dark" ${currentUser.theme === 'dark' ? 'selected' : ''}>Dark Mode</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Background Custom (URL Gambar)</label>
+                            <input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage || '')}" placeholder="https://example.com/gambar.jpg">
+                        </div>
+                        <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan Perubahan</button>
+                        <div class="url-info">
+                            <i class="fas fa-link"></i> LinkTree Kamu:<br>
+                            <code id="userUrl">${userUrl}</code><br>
+                            <button id="copyUrlBtn" class="btn-outline" style="margin-top:10px;"><i class="fas fa-copy"></i> Copy URL</button>
+                            <button id="viewLinktreeBtn" class="btn-primary" style="margin-left:10px;background:#1DB954;"><i class="fas fa-external-link-alt"></i> Buka LinkTree</button>
+                        </div>
                     </div>
                     <div class="preview-section">
-                        <div class="preview-container"><h3 style="margin-bottom:15px;"><i class="fas fa-eye"></i> Live Preview</h3>
-                        <div style="text-align:center;"><div class="preview-avatar" style="margin:0 auto 15px;">${previewAvatarHtml}</div><div class="preview-name">${escapeHtml(currentUser.displayName || '@' + currentUser.username)}</div><div class="preview-bio">${escapeHtml(bioArray[0] || '')}</div></div>
-                        <div style="margin-top:20px;">${previewLinksHtml}</div>${previewSpotifyHtml}</div>
+                        <div class="preview-container">
+                            <h3 style="margin-bottom:15px;"><i class="fas fa-eye"></i> Live Preview</h3>
+                            <div style="text-align:center;">
+                                <div class="preview-avatar" style="margin:0 auto 15px;">${previewAvatarHtml}</div>
+                                <div class="preview-name">${escapeHtml(currentUser.displayName || '@' + currentUser.username)}</div>
+                                <div class="preview-bio">${escapeHtml(bioArray[0] || '')}</div>
+                            </div>
+                            <div style="margin-top:20px;">${previewLinksHtml}</div>
+                            ${previewSpotifyHtml}
+                        </div>
                     </div>
                 </div>
+                ${adminPanelHtml}
             `;
             
             // Bind events
             const avatarPreview = document.getElementById('avatarPreviewUpload');
             const avatarInput = document.getElementById('avatarUploadInput');
-            avatarPreview?.addEventListener('click', () => avatarInput.click());
-            avatarInput?.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => updateUser({ avatar: event.target.result });
-                    reader.readAsDataURL(file);
-                }
+            if (avatarPreview) {
+                avatarPreview.addEventListener('click', () => avatarInput.click());
+            }
+            if (avatarInput) {
+                avatarInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            await updateUser(currentUser.id, { avatar: event.target.result });
+                            showToast('Foto profile berhasil diupdate!');
+                            renderSettingsPage();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            document.getElementById('clearAvatarBtn')?.addEventListener('click', async () => {
+                await updateUser(currentUser.id, { avatar: null });
+                showToast('Foto profile dihapus!');
+                renderSettingsPage();
             });
-            document.getElementById('clearAvatarBtn')?.addEventListener('click', () => updateUser({ avatar: null }));
+            
             document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
                 const customLinks = [];
                 document.querySelectorAll('[data-custom-name]').forEach(input => {
                     const idx = parseInt(input.dataset.customName);
                     const urlInput = document.querySelector(`[data-custom-url="${idx}"]`);
-                    if (input.value.trim() && urlInput?.value.trim()) customLinks.push({ name: input.value.trim(), url: urlInput.value.trim() });
+                    if (input.value.trim() && urlInput?.value.trim()) {
+                        customLinks.push({ name: input.value.trim(), url: urlInput.value.trim() });
+                    }
                 });
-                await updateUser({
+                
+                await updateUser(currentUser.id, {
                     displayName: document.getElementById('displayName')?.value || '',
                     bio: document.getElementById('bio')?.value || '',
-                    links: { instagram: document.getElementById('instagramUrl')?.value || '', tiktok: document.getElementById('tiktokUrl')?.value || '', youtube: document.getElementById('youtubeUrl')?.value || '', github: document.getElementById('githubUrl')?.value || '', whatsapp: document.getElementById('whatsappUrl')?.value || '', discord: document.getElementById('discordUrl')?.value || '' },
-                    backTexts: { instagram: document.getElementById('backInstagram')?.value || '', tiktok: document.getElementById('backTiktok')?.value || '', youtube: document.getElementById('backYoutube')?.value || '', github: document.getElementById('backGithub')?.value || '' },
+                    links: {
+                        instagram: document.getElementById('instagramUrl')?.value || '',
+                        tiktok: document.getElementById('tiktokUrl')?.value || '',
+                        youtube: document.getElementById('youtubeUrl')?.value || '',
+                        github: document.getElementById('githubUrl')?.value || '',
+                        whatsapp: document.getElementById('whatsappUrl')?.value || '',
+                        discord: document.getElementById('discordUrl')?.value || ''
+                    },
+                    backTexts: {
+                        instagram: document.getElementById('backInstagram')?.value || '',
+                        tiktok: document.getElementById('backTiktok')?.value || '',
+                        youtube: document.getElementById('backYoutube')?.value || '',
+                        github: document.getElementById('backGithub')?.value || ''
+                    },
                     customLinks: customLinks,
                     spotifyId: document.getElementById('spotifyId')?.value || '',
                     theme: document.getElementById('themeMode')?.value || 'light',
                     bgImage: document.getElementById('bgImage')?.value || ''
                 });
-                alert('✅ Data tersimpan di server Vercel!');
+                showToast('✅ Data berhasil disimpan ke Firebase!');
+                renderSettingsPage();
             });
-            document.getElementById('addCustomLinkBtn')?.addEventListener('click', () => updateUser({ customLinks: [...(currentUser.customLinks || []), { name: '', url: '' }] }));
+            
+            document.getElementById('addCustomLinkBtn')?.addEventListener('click', async () => {
+                await updateUser(currentUser.id, { customLinks: [...(currentUser.customLinks || []), { name: '', url: '' }] });
+                renderSettingsPage();
+            });
+            
             document.querySelectorAll('[data-custom-remove]').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const idx = parseInt(btn.dataset.customRemove);
                     const newLinks = [...(currentUser.customLinks || [])];
                     newLinks.splice(idx, 1);
-                    updateUser({ customLinks: newLinks });
+                    await updateUser(currentUser.id, { customLinks: newLinks });
+                    renderSettingsPage();
                 });
             });
+            
             document.getElementById('copyUrlBtn')?.addEventListener('click', () => {
                 navigator.clipboard.writeText(document.getElementById('userUrl')?.textContent || '');
-                alert('URL disalin!');
+                showToast('URL LinkTree disalin!');
             });
-            document.getElementById('viewLinktreeBtn')?.addEventListener('click', () => window.open(`?user=${currentUser.username}`, '_blank'));
+            
+            document.getElementById('viewLinktreeBtn')?.addEventListener('click', () => {
+                window.open(`?user=${currentUser.username}`, '_blank');
+            });
+            
+            // Admin events
+            document.querySelectorAll('.view-user').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.open(`?user=${btn.dataset.username}`, '_blank');
+                });
+            });
+            document.querySelectorAll('.delete-user').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (confirm('⚠️ Hapus user ini? Data tidak bisa dikembalikan!')) {
+                        await deleteUser(btn.dataset.userid);
+                        showToast('User berhasil dihapus!');
+                        renderSettingsPage();
+                    }
+                });
+            });
         }
 
+        // Render Welcome Page (Belum Login)
         function renderWelcomePage() {
             document.body.className = 'light-mode';
             document.getElementById('mainContainer').innerHTML = `
                 <div class="welcome-section">
-                    <h1>LinkTree <span style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">Vercel</span></h1>
-                    <p>✨ Dengan backend Vercel, data tersimpan di server!<br>Login di HP dan laptop, data tetap sama.</p>
-                    <div class="cta-buttons"><button id="openLoginBtn" class="btn-primary">Login</button><button id="openRegisterBtn" class="btn-outline">Daftar Gratis</button></div>
-                    <div style="margin-top:50px;background:rgba(0,0,0,0.3);padding:25px;border-radius:20px;"><h3>🚀 Keunggulan Versi Vercel Backend:</h3><ul style="text-align:left;margin-top:15px;list-style:none;"><li>✅ Data tersimpan di server (bukan di browser)</li><li>✅ Bisa login dari HP dan laptop, data sama</li><li>✅ LinkTree user lain BISA dilihat (via ?user=username)</li><li>✅ Admin bisa kelola semua user</li><li>✅ Hosting GRATIS di Vercel</li></ul></div>
+                    <h1>Buat LinkTree <span style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">Gratis!</span></h1>
+                    <p>✨ Dengan Firebase, data tersimpan di cloud!<br>Login di HP dan laptop, data tetap sama.</p>
+                    <div class="cta-buttons" style="display:flex;gap:20px;justify-content:center;margin-top:30px;">
+                        <button id="openLoginBtn" class="btn-primary">Login</button>
+                        <button id="openRegisterBtn" class="btn-outline">Daftar Gratis</button>
+                    </div>
+                    <div style="margin-top:60px;background:rgba(0,0,0,0.3);padding:25px;border-radius:20px;max-width:500px;margin-left:auto;margin-right:auto;">
+                        <h3>🚀 Keunggulan LinkTree Firebase:</h3>
+                        <ul style="text-align:left;margin-top:15px;list-style:none;">
+                            <li>✅ Data tersimpan di Firebase cloud</li>
+                            <li>✅ Bisa login dari HP dan laptop</li>
+                            <li>✅ LinkTree user lain BISA dilihat</li>
+                            <li>✅ Admin bisa kelola semua user</li>
+                            <li>✅ URL unik: ?user=usernamekamu</li>
+                            <li>✅ GRATIS selamanya!</li>
+                        </ul>
+                    </div>
+                    <div style="margin-top:40px;">
+                        <p style="opacity:0.6;">Demo akun admin: <strong>admin</strong> / <strong>admin123</strong></p>
+                    </div>
                 </div>
             `;
-            document.getElementById('navLinks').innerHTML = `<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
+            
+            const navLinks = document.getElementById('navLinks');
+            navLinks.innerHTML = `<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
+            
             document.getElementById('openLoginBtn')?.addEventListener('click', () => openModal('login'));
             document.getElementById('openRegisterBtn')?.addEventListener('click', () => openModal('register'));
             document.getElementById('navLoginBtn')?.addEventListener('click', () => openModal('login'));
         }
 
-        function renderApp() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser && !currentUser) {
-                currentUser = JSON.parse(savedUser);
+        // Main Render
+        async function renderApp() {
+            const savedUserId = localStorage.getItem('currentUserId');
+            if (savedUserId && !currentUser) {
+                const users = await getAllUsers();
+                currentUser = users.find(u => u.id === savedUserId);
             }
+            
             const urlParams = new URLSearchParams(window.location.search);
             const usernameParam = urlParams.get('user');
-            if (usernameParam && !currentUser) {
-                getUserByUsername(usernameParam).then(user => { if (user) renderLinkTreePage(user); else renderWelcomePage(); });
+            
+            if (usernameParam && (!currentUser || currentUser.username !== usernameParam)) {
+                renderLinkTreePage(usernameParam);
                 return;
             }
-            if (currentUser) renderSettingsPage();
-            else renderWelcomePage();
+            
+            if (currentUser) {
+                renderSettingsPage();
+            } else {
+                renderWelcomePage();
+            }
         }
 
-        function openModal(type) { document.getElementById(type === 'login' ? 'loginModal' : 'registerModal').classList.add('show'); }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUserId');
+            showToast('Berhasil logout!');
+            renderApp();
+        }
 
-        document.getElementById('doLoginBtn')?.addEventListener('click', async () => { if (await login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value)) closeModals(); else alert('Login gagal!'); });
-        document.getElementById('doRegisterBtn')?.addEventListener('click', async () => { if (await register({ username: document.getElementById('regUsername').value, password: document.getElementById('regPassword').value, displayName: document.getElementById('regDisplayName').value })) { alert('Daftar berhasil! Silakan login.'); closeModals(); } else alert('Username sudah ada!'); });
-        document.getElementById('showRegisterBtn')?.addEventListener('click', (e) => { e.preventDefault(); closeModals(); openModal('register'); });
-        document.getElementById('showLoginFromRegBtn')?.addEventListener('click', (e) => { e.preventDefault(); closeModals(); openModal('login'); });
-        document.getElementById('homeLogo')?.addEventListener('click', () => { window.history.pushState({}, '', '/'); renderApp(); });
+        function openModal(type) { 
+            document.getElementById(type === 'login' ? 'loginModal' : 'registerModal').classList.add('show'); 
+        }
+        
+        function closeModals() { 
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); 
+        }
 
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        document.getElementById('doLoginBtn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('doLoginBtn');
+            showLoading(btn);
+            const result = await login(
+                document.getElementById('loginUsername').value, 
+                document.getElementById('loginPassword').value
+            );
+            hideLoading(btn, 'Login');
+            if (result.success) {
+                currentUser = result.user;
+                localStorage.setItem('currentUserId', currentUser.id);
+                closeModals();
+                renderApp();
+            } else {
+                alert(result.error);
+            }
+        });
+        
+        document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('doRegisterBtn');
+            showLoading(btn);
+            const result = await register(
+                document.getElementById('regUsername').value,
+                document.getElementById('regPassword').value,
+                document.getElementById('regDisplayName').value
+            );
+            hideLoading(btn, 'Daftar');
+            if (result.success) {
+                alert('✅ Pendaftaran berhasil! Silakan login.');
+                closeModals();
+                document.getElementById('loginUsername').value = document.getElementById('regUsername').value;
+                openModal('login');
+            } else {
+                alert(result.error);
+            }
+        });
+        
+        document.getElementById('showRegisterBtn')?.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            closeModals(); 
+            openModal('register'); 
+        });
+        
+        document.getElementById('showLoginFromRegBtn')?.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            closeModals(); 
+            openModal('login'); 
+        });
+        
+        document.getElementById('homeLogo')?.addEventListener('click', () => { 
+            window.history.pushState({}, '', '/'); 
+            renderApp(); 
+        });
+        
+        // Initialize
+        createAdminIfNotExists();
         renderApp();
     </script>
 </body>
