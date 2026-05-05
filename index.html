@@ -3,76 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LinkTree Pro – Xtxz Putra</title>
+    <title>LinkTree Pro – Login OTP via Email</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            transition: all 0.3s ease;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; min-height: 100vh; transition: all 0.3s; }
         body.light-mode { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
         body.dark-mode { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); color: #e0e0e0; }
         body.custom-bg { background: var(--custom-bg) !important; background-size: cover !important; background-position: center !important; background-attachment: fixed !important; }
-
-        /* navbar */
         .navbar { background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); position: sticky; top: 0; z-index: 200; }
         .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .logo { font-size: 26px; font-weight: 800; cursor: pointer; letter-spacing: -0.3px; }
+        .logo { font-size: 26px; font-weight: 800; cursor: pointer; }
         .logo i { color: #1DB954; margin-right: 8px; }
         .logo span { background: linear-gradient(135deg, #E0E7FF, #A855F7); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .nav-links { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-        .btn-outline:hover { background: rgba(255,255,255,0.15); transform: scale(0.97); }
-        .btn-primary { background: linear-gradient(135deg, #A855F7, #3B82F6); border: none; color: white; padding: 8px 22px; border-radius: 40px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.2s; }
-        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.02); }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.2); }
+        .btn-primary { background: linear-gradient(135deg, #A855F7, #3B82F6); border: none; color: white; padding: 8px 22px; border-radius: 40px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .badge-admin { background: #ef4444cc; padding: 4px 12px; border-radius: 60px; font-size: 12px; font-weight: 600; backdrop-filter: blur(4px); }
-
-        /* main layout */
         .main-container { max-width: 1400px; margin: 30px auto; padding: 0 24px; }
-        
-        /* admin dashboard khusus */
         .admin-dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; margin-bottom: 40px; }
-        .admin-stats { background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 32px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
-        .admin-user-list { background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 32px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); max-height: 70vh; overflow-y: auto; }
+        .admin-stats, .admin-user-list { background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border-radius: 32px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
         .user-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; gap: 10px; }
-        .user-actions button { background: rgba(255,255,255,0.15); border: none; padding: 6px 14px; border-radius: 30px; color: white; margin-left: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; }
-        .user-actions button:hover { background: #3B82F6; }
-        .delete-user-btn:hover { background: #dc2626 !important; }
-
-        /* settings page (user biasa) */
         .settings-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .form-card { background: rgba(0,0,0,0.35); backdrop-filter: blur(14px); border-radius: 32px; padding: 28px; border: 1px solid rgba(255,255,255,0.15); max-height: 85vh; overflow-y: auto; }
-        .preview-card { background: rgba(0,0,0,0.3); backdrop-filter: blur(14px); border-radius: 32px; padding: 24px; border: 2px solid rgba(255,255,255,0.2); position: sticky; top: 90px; }
-        
+        .form-card, .preview-card { background: rgba(0,0,0,0.35); backdrop-filter: blur(14px); border-radius: 32px; padding: 28px; border: 1px solid rgba(255,255,255,0.15); }
+        .preview-card { position: sticky; top: 90px; }
         .form-group { margin-bottom: 22px; }
         .form-group label { font-size: 13px; font-weight: 500; opacity: 0.85; margin-bottom: 6px; display: block; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 12px 18px; color: white; font-size: 14px; outline: none; transition: 0.2s; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 12px 18px; color: white; outline: none; }
         .form-group input:focus { border-color: #A855F7; }
-        .section-title { font-size: 18px; margin: 28px 0 16px 0; font-weight: 600; border-left: 4px solid #A855F7; padding-left: 12px; }
-        
+        .section-title { font-size: 18px; margin: 28px 0 16px; border-left: 4px solid #A855F7; padding-left: 12px; font-weight: 600; }
         .preview-avatar { width: 110px; height: 110px; border-radius: 60px; background: rgba(255,255,255,0.2); margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .preview-link { background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 60px; padding: 12px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; cursor: default; }
-        .preview-link-left { display: flex; gap: 14px; align-items: center; }
-        .save-btn { background: linear-gradient(95deg, #A855F7, #3B82F6); border: none; width: 100%; padding: 14px; border-radius: 60px; font-weight: 700; color: white; margin-top: 28px; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .url-box { background: rgba(0,0,0,0.4); border-radius: 24px; padding: 18px; text-align: center; margin-top: 20px; }
-
-        /* modal */
+        .preview-link { background: rgba(255,255,255,0.12); border-radius: 60px; padding: 12px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .save-btn { background: linear-gradient(95deg, #A855F7, #3B82F6); width: 100%; padding: 14px; border-radius: 60px; font-weight: 700; color: white; margin-top: 28px; cursor: pointer; border: none; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
         .modal-card { background: #1A1E36; border-radius: 32px; max-width: 420px; width: 90%; padding: 32px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
         .modal-card input { width: 100%; padding: 12px; margin: 12px 0; border-radius: 50px; background: #0F1229; border: 1px solid #334; color: white; }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937cc; backdrop-filter: blur(8px); color: white; padding: 12px 28px; border-radius: 60px; z-index: 1500; font-weight: 500; animation: fadeUp 2s ease; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937cc; backdrop-filter: blur(8px); padding: 12px 28px; border-radius: 60px; z-index: 1500; animation: fadeUp 2s ease; }
         @keyframes fadeUp { 0% { opacity: 0; bottom: 0; } 15% { opacity: 1; bottom: 30px; } 85% { opacity: 1; } 100% { opacity: 0; bottom: 60px; } }
         @media (max-width: 900px) { .settings-wrapper, .admin-dashboard { grid-template-columns: 1fr; } .preview-card { position: relative; top: 0; margin-top: 20px; } }
     </style>
@@ -86,12 +58,34 @@
     </nav>
     <div class="main-container" id="mainContainer"></div>
 
-    <!-- Modals -->
-    <div id="loginModal" class="modal"><div class="modal-card"><h2><i class="fas fa-sign-in-alt"></i> Masuk</h2><input type="text" id="loginUsername" placeholder="Username"><input type="password" id="loginPassword" placeholder="Password"><button id="doLoginBtn" class="save-btn" style="margin-top:8px;">Login</button><p style="margin-top:16px;">Belum punya akun? <a href="#" id="showRegisterBtn" style="color:#A855F7;">Daftar</a></p><p style="font-size:12px; opacity:0.7;">admin / admin123</p></div></div>
-    <div id="registerModal" class="modal"><div class="modal-card"><h2><i class="fas fa-user-plus"></i> Daftar</h2><input type="text" id="regUsername" placeholder="Username"><input type="password" id="regPassword" placeholder="Password"><input type="text" id="regDisplayName" placeholder="Nama Tampilan"><button id="doRegisterBtn" class="save-btn">Daftar</button><p>Sudah punya akun? <a href="#" id="showLoginFromRegBtn" style="color:#A855F7;">Login</a></p></div></div>
+    <!-- Modal Login OTP (Email + Kode) -->
+    <div id="loginModal" class="modal">
+        <div class="modal-card">
+            <h2><i class="fas fa-envelope"></i> Login dengan Email</h2>
+            <input type="email" id="loginEmail" placeholder="Email kamu" autocomplete="off">
+            <button id="sendOtpBtn" class="btn-primary" style="width:100%; margin-top:6px;">Kirim Kode OTP</button>
+            <div id="otpSection" style="display:none; margin-top:16px;">
+                <input type="text" id="otpCode" placeholder="Kode 6 digit">
+                <button id="verifyOtpBtn" class="save-btn" style="margin-top:8px;">Verifikasi & Login</button>
+            </div>
+            <p style="margin-top:20px;">Belum punya akun? <a href="#" id="showRegisterBtn" style="color:#A855F7;">Daftar</a></p>
+            <p style="font-size:12px; opacity:0.7;">Admin: admin@xtxz.com (gunakan OTP)</p>
+        </div>
+    </div>
+
+    <!-- Modal Register (Daftar dengan Email) -->
+    <div id="registerModal" class="modal">
+        <div class="modal-card">
+            <h2><i class="fas fa-user-plus"></i> Daftar</h2>
+            <input type="email" id="regEmail" placeholder="Email aktif" autocomplete="off">
+            <input type="text" id="regDisplayName" placeholder="Nama Tampilan (opsional)">
+            <button id="doRegisterBtn" class="save-btn">Daftar</button>
+            <p>Sudah punya akun? <a href="#" id="showLoginFromRegBtn" style="color:#A855F7;">Login</a></p>
+        </div>
+    </div>
 
     <script>
-        // ----------------------------- FIREBASE -------------------------
+        // ======================= FIREBASE SETUP =======================
         const firebaseConfig = {
             apiKey: "AIzaSyD10-8FaZa_gO_2-QBs0HLvpqWEIjC30oE",
             authDomain: "linktree-xtxz.firebaseapp.com",
@@ -104,292 +98,216 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // ======================= EMAILJS KONFIGURASI (PK MILIK TUAN) =======================
+        emailjs.init("VfSqUvKD22MIGrRXo");  // Public Key
+        const EMAILJS_SERVICE_ID = "service_jtrmkao";
+        const EMAILJS_TEMPLATE_ID = "template_5q6brxe";
+
         let currentUser = null;
+        let pendingOtpEmail = null;
+        let generatedOtp = null;
 
-        // helper
+        // Helper
+        function showToast(msg) { let t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fas fa-circle-info"></i> ${msg}`; document.body.appendChild(t); setTimeout(()=>t.remove(),2500); }
         function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-        function showToast(msg) { const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fas fa-circle-info"></i> ${msg}`; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
-        function applyTheme(user) {
-            const theme=user?.theme||'light', bg=user?.bgImage||'';
-            if(bg){ document.body.style.setProperty('--custom-bg',`url('${bg}')`); document.body.className='custom-bg'; }
-            else { document.body.className=theme==='dark'?'dark-mode':'light-mode'; document.body.style.removeProperty('--custom-bg'); }
-        }
+        function applyTheme(user) { let theme=user?.theme||'light', bg=user?.bgImage||''; if(bg){ document.body.style.setProperty('--custom-bg',`url('${bg}')`); document.body.className='custom-bg'; } else document.body.className=theme==='dark'?'dark-mode':'light-mode'; }
 
-        // ---------- Firebase operations ----------
-        async function register(username, password, displayName) {
+        // ----------------------- DATABASE OPERATIONS -----------------------
+        async function getUserByEmail(email) {
             return new Promise(resolve=>{
-                db.ref('users').orderByChild('username').equalTo(username).once('value', snap=>{
-                    if(snap.exists()) return resolve({success:false, error:'Username sudah dipakai'});
-                    const newUser={
-                        id:'u_'+Date.now(), username, password, isAdmin:false,
-                        displayName: displayName||'@'+username,
-                        bio:'Halo! Selamat datang di LinkTree ku 🚀',
-                        avatar:null,
-                        links:{ instagram:'', tiktok:'', youtube:'', github:'', whatsapp:'', discord:'' },
-                        backTexts:{ instagram:'@'+username, tiktok:'@'+username, youtube:username, github:username },
-                        customLinks:[], spotifyId:'', theme:'light', bgImage:'', createdAt:new Date().toISOString()
-                    };
-                    db.ref('users/'+newUser.id).set(newUser, err=>err? resolve({success:false,error:err.message}): resolve({success:true, user:newUser}));
-                });
-            });
-        }
-        async function login(username, password) {
-            return new Promise(resolve=>{
-                db.ref('users').orderByChild('username').equalTo(username).once('value', snap=>{
-                    if(!snap.exists()) return resolve({success:false, error:'User tidak ditemukan'});
-                    let found=null;
-                    snap.forEach(c=>{ let u=c.val(); if(u.password===password) found=u; });
-                    if(found){ const{password:p,...rest}=found; resolve({success:true, user:rest}); }
-                    else resolve({success:false, error:'Password salah'});
-                });
-            });
-        }
-        async function updateUser(userId, updates) {
-            return new Promise(resolve=>db.ref('users/'+userId).update(updates, err=>resolve({success:!err, error:err?.message})));
-        }
-        async function getUserByUsername(username) {
-            return new Promise(resolve=>{
-                db.ref('users').orderByChild('username').equalTo(username).once('value', snap=>{
+                db.ref('users').orderByChild('email').equalTo(email).once('value', snap=>{
                     if(!snap.exists()) resolve(null);
                     else { let user=null; snap.forEach(c=>user=c.val()); const{password,...rest}=user; resolve(rest); }
                 });
             });
         }
-        async function getAllUsers() {
+        async function registerUser(email, displayName) {
             return new Promise(resolve=>{
-                db.ref('users').once('value', snap=>{
-                    const list=[]; snap.forEach(c=>{ let u=c.val(); delete u.password; list.push(u); });
-                    resolve(list);
+                db.ref('users').orderByChild('email').equalTo(email).once('value', async snap=>{
+                    if(snap.exists()) return resolve({success:false, error:'Email sudah terdaftar'});
+                    const newUser={
+                        id:'u_'+Date.now(), email, isAdmin: (email === 'admin@xtxz.com'),
+                        displayName: displayName || email.split('@')[0],
+                        bio:'Selamat datang di LinkTree Pro! ✨',
+                        avatar:null,
+                        links:{ instagram:'', tiktok:'', youtube:'', github:'', whatsapp:'', discord:'' },
+                        backTexts:{ instagram:'@'+email.split('@')[0], tiktok:'@'+email.split('@')[0], youtube:email.split('@')[0], github:email.split('@')[0] },
+                        customLinks:[], spotifyId:'', theme:'light', bgImage:'', createdAt:new Date().toISOString()
+                    };
+                    await db.ref('users/'+newUser.id).set(newUser);
+                    resolve({success:true, user:newUser});
                 });
             });
         }
-        async function deleteUserById(userId, adminCheck=true) {
-            if(adminCheck && !currentUser?.isAdmin) return {success:false};
-            return new Promise(resolve=>db.ref('users/'+userId).remove(err=>resolve({success:!err})));
-        }
-        async function createAdminIfEmpty(){
-            const snap=await db.ref('users').orderByChild('username').equalTo('admin').once('value');
-            if(!snap.exists()){
-                const admin={
-                    id:'admin_xtxz', username:'admin', password:'admin123', isAdmin:true,
-                    displayName:'@Xtxz Putra', bio:'🚀 Creator | Developer | Gamer,⚡ Roblox Exploit & Web Dev,🎮 Live everyday!',
-                    avatar:null, links:{ instagram:'https://instagram.com/xtxzputra', tiktok:'https://tiktok.com/@xtxzputra', youtube:'https://youtube.com/c/xtxzputra', github:'https://github.com/xtxzputra', whatsapp:'https://wa.me/6281234567890', discord:'https://discord.gg/xtxz' },
-                    backTexts:{ instagram:'@xtxzputra', tiktok:'@xtxzputra', youtube:'Xtxz Putra', github:'xtxzputra' },
-                    customLinks:[], spotifyId:'3LR1I9C0C1Jzl6wJuS9int', theme:'light', bgImage:'', createdAt:new Date().toISOString()
+        async function updateUser(userId, updates) { return new Promise(resolve=>db.ref('users/'+userId).update(updates, err=>resolve({success:!err}))); }
+        async function getAllUsers() { return new Promise(resolve=>{ db.ref('users').once('value', snap=>{ let list=[]; snap.forEach(c=>{ let u=c.val(); delete u.password; list.push(u); }); resolve(list); }); }); }
+        async function deleteUserById(userId){ return new Promise(resolve=>db.ref('users/'+userId').remove(err=>resolve({success:!err}))); }
+        async function createAdminIfMissing(){ let existing=await getUserByEmail('admin@xtxz.com'); if(!existing){ await registerUser('admin@xtxz.com','Xtxz Admin'); } }
+
+        // ----------------------- EMAIL OTP (REAL EMAILJS) -----------------------
+        async function sendEmailOtp(email, otp, displayName) {
+            try {
+                const templateParams = {
+                    to_email: email,
+                    otp_code: otp,
+                    display_name: displayName || email.split('@')[0]
                 };
-                await db.ref('users/admin_xtxz').set(admin);
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+                showToast(`✅ Kode OTP dikirim ke ${email}`);
+                return true;
+            } catch (error) {
+                console.error(error);
+                alert(`Gagal mengirim OTP via email: ${error.text || error}`);
+                showToast('Gagal kirim OTP, coba lagi');
+                return false;
             }
         }
 
-        // ---------- RENDER: PUBLIC LINKTREE (Preview Publik) ----------
-        async function renderPublicLinktree(username) {
-            const user = await getUserByUsername(username);
-            if(!user){
-                document.getElementById('mainContainer').innerHTML=`<div style="text-align:center;padding:80px;"><h2>😢 User tidak ditemukan</h2><button class="btn-primary" onclick="location.reload()">Kembali</button></div>`;
-                return;
+        function generateOtp() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+
+        async function requestOtp(email){
+            let user = await getUserByEmail(email);
+            if(!user) { showToast('❌ Email belum terdaftar, silakan daftar dulu'); return false; }
+            pendingOtpEmail = email;
+            generatedOtp = generateOtp();
+            let success = await sendEmailOtp(email, generatedOtp, user.displayName);
+            return success;
+        }
+        async function verifyOtpAndLogin(otpCode){
+            if(otpCode === generatedOtp && pendingOtpEmail){
+                let user = await getUserByEmail(pendingOtpEmail);
+                if(user){ currentUser=user; localStorage.setItem('currentUserId',user.id); pendingOtpEmail=null; generatedOtp=null; closeModals(); renderApp(); showToast(`✨ Selamat datang ${user.displayName}`); return true; }
             }
+            showToast('❌ Kode OTP salah / sudah kadaluarsa');
+            return false;
+        }
+
+        // ----------------------- RENDER PUBLIC LINKTREE (berdasarkan email) -----------------------
+        async function renderPublicLinktree(emailUser) {
+            let user = await getUserByEmail(emailUser);
+            if(!user){ document.getElementById('mainContainer').innerHTML=`<div style="text-align:center;padding:80px;"><h2>User tidak ditemukan</h2><button class="btn-primary" onclick="location.reload()">Kembali</button></div>`; return; }
             applyTheme(user);
-            const bioArr = (user.bio||'').split(',').map(s=>s.trim()).filter(s=>s);
-            const avatarHtml = user.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut" style="font-size:50px;"></i>';
+            let bioArr=(user.bio||'').split(',').map(s=>s.trim());
+            let avatarHtml=user.avatar?`<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">`:'<i class="fas fa-user-astronaut" style="font-size:50px;"></i>';
             let linksHtml='';
-            const platforms=[
-                {key:'instagram',name:'Instagram',icon:'fab fa-instagram'},{key:'tiktok',name:'TikTok',icon:'fab fa-tiktok'},
-                {key:'youtube',name:'YouTube',icon:'fab fa-youtube'},{key:'github',name:'GitHub',icon:'fab fa-github'},
-                {key:'whatsapp',name:'WhatsApp',icon:'fab fa-whatsapp'},{key:'discord',name:'Discord',icon:'fab fa-discord'}
-            ];
-            platforms.forEach(p=>{ let url=user.links?.[p.key]; if(url?.trim()) linksHtml+=`<a href="${url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="${p.icon}"></i><span>${p.name}</span></div><i class="fas fa-arrow-right"></i></a>`; });
-            if(user.customLinks) user.customLinks.forEach(l=>{ if(l.name && l.url) linksHtml+=`<a href="${l.url}" target="_blank" class="preview-link"><div class="preview-link-left"><i class="fas fa-link"></i><span>${escapeHtml(l.name)}</span></div><i class="fas fa-arrow-right"></i></a>`; });
+            const platforms=['instagram','tiktok','youtube','github','whatsapp','discord'];
+            platforms.forEach(p=>{ let url=user.links?.[p]; if(url?.trim()) linksHtml+=`<div class="preview-link"><div><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></div>`; });
+            if(user.customLinks) user.customLinks.forEach(l=>{ if(l.name) linksHtml+=`<div class="preview-link"><div><i class="fas fa-link"></i> ${escapeHtml(l.name)}</div><i class="fas fa-arrow-right"></i></div>`; });
             let spotifyHtml='';
-            if(user.spotifyId){ let id=user.spotifyId; if(id.includes('playlist/')){ let m=id.match(/playlist\/([a-zA-Z0-9]+)/); if(m) id=m[1]; } spotifyHtml=`<div style="margin-top:18px;"><iframe src="https://open.spotify.com/embed/playlist/${id}?utm_source=generator" style="border-radius:20px;width:100%;height:152px;" frameborder="0"></iframe></div>`; }
-            document.getElementById('mainContainer').innerHTML=`
-                <div style="max-width:550px;margin:0 auto;">
-                    <div style="text-align:center;"><div class="preview-avatar" style="margin:0 auto;">${avatarHtml}</div><div class="preview-name" style="font-size:28px;margin-top:8px;">${escapeHtml(user.displayName||'@'+user.username)}</div><div class="preview-bio">${escapeHtml(bioArr[0]||'')}</div></div>
-                    <div>${linksHtml}</div>${spotifyHtml}
-                    <div style="text-align:center;font-size:11px;opacity:0.5;margin-top:40px;"><i class="fas fa-leaf"></i>  LinkTree Pro — share more</div>
-                </div>`;
-            const navDiv=document.getElementById('navLinks');
-            if(currentUser) navDiv.innerHTML=`<span>👋 ${escapeHtml(currentUser.displayName||currentUser.username)}</span><button id="goSettingsNav" class="btn-outline">⚙️ Settings</button><button id="logoutNavBtn" class="btn-outline">🚪 Logout</button>`;
-            else navDiv.innerHTML=`<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
+            if(user.spotifyId){ let id=user.spotifyId; if(id.includes('playlist/')){ let m=id.match(/playlist\/([a-zA-Z0-9]+)/); if(m) id=m[1]; } spotifyHtml=`<iframe src="https://open.spotify.com/embed/playlist/${id}" style="border-radius:20px;width:100%;height:132px;" frameborder="0"></iframe>`; }
+            document.getElementById('mainContainer').innerHTML=`<div style="max-width:550px;margin:0 auto;"><div style="text-align:center;"><div class="preview-avatar">${avatarHtml}</div><div class="preview-name">${escapeHtml(user.displayName)}</div><div class="preview-bio">${escapeHtml(bioArr[0]||'')}</div></div>${linksHtml}${spotifyHtml}<div style="text-align:center;font-size:11px;margin-top:32px;">🔗 LinkTree Pro — bagikan profilmu</div></div>`;
+            let navDiv=document.getElementById('navLinks');
+            if(currentUser) navDiv.innerHTML=`<span>👋 ${escapeHtml(currentUser.displayName)}</span><button id="goSettingsNav" class="btn-outline">⚙️ Settings</button><button id="logoutNavBtn" class="btn-outline">Logout</button>`;
+            else navDiv.innerHTML=`<button id="navLoginBtn" class="btn-primary">Login</button>`;
             document.getElementById('goSettingsNav')?.addEventListener('click',()=>{ window.history.pushState({},'','/'); renderApp(); });
             document.getElementById('logoutNavBtn')?.addEventListener('click',logout);
             document.getElementById('navLoginBtn')?.addEventListener('click',()=>openModal('login'));
         }
 
-        // ---------- DASHBOARD ADMIN (kelola user, monitor) ----------
+        // ----------------------- ADMIN DASHBOARD -----------------------
         async function renderAdminDashboard() {
-            const allUsers = await getAllUsers();
-            const normalUsers = allUsers.filter(u=>!u.isAdmin);
+            let allUsers = await getAllUsers();
+            let normalUsers = allUsers.filter(u=>u.email !== 'admin@xtxz.com');
             document.getElementById('mainContainer').innerHTML=`
                 <div class="admin-dashboard">
-                    <div class="admin-stats">
-                        <h3><i class="fas fa-chart-line"></i>  Aktivitas</h3>
-                        <p style="font-size:32px;font-weight:800;margin:12px 0;">${normalUsers.length}</p>
-                        <p>Total pengguna terdaftar</p>
-                        <hr style="margin:15px 0; opacity:0.2;">
-                        <p><i class="fas fa-user-check"></i>  Admin aktif: <strong>${escapeHtml(currentUser.displayName||currentUser.username)}</strong></p>
-                        <button id="refreshAdminBtn" class="btn-outline" style="margin-top:16px;"><i class="fas fa-sync-alt"></i> Refresh data</button>
-                    </div>
-                    <div class="admin-user-list">
-                        <h3><i class="fas fa-users"></i>  Kelola Pengguna</h3>
-                        <div id="adminUserListContainer">
-                            ${normalUsers.map(u=>`
-                                <div class="user-row" data-uid="${u.id}">
-                                    <div><strong>${escapeHtml(u.username)}</strong><br><span style="font-size:12px;">${escapeHtml(u.displayName||'')}</span></div>
-                                    <div class="user-actions">
-                                        <button class="view-user-btn" data-username="${u.username}"><i class="fas fa-eye"></i> Lihat</button>
-                                        <button class="delete-user-btn" data-uid="${u.id}"><i class="fas fa-trash-alt"></i> Hapus</button>
-                                    </div>
-                                </div>
-                            `).join('') || '<p style="opacity:0.7;">✨ Belum ada user lain</p>}
-                        </div>
-                    </div>
+                    <div class="admin-stats"><h3><i class="fas fa-chart-line"></i> Statistik</h3><p style="font-size:32px;font-weight:800;">${normalUsers.length}</p><p>Total pengguna terdaftar</p><button id="refreshAdminBtn" class="btn-outline" style="margin-top:16px;"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+                    <div class="admin-user-list"><h3><i class="fas fa-users"></i> Manajemen Pengguna</h3><div id="adminUserList">${normalUsers.map(u=>`<div class="user-row"><div><strong>${escapeHtml(u.email)}</strong><br><small>${escapeHtml(u.displayName)}</small></div><div><button class="viewUserBtn" data-email="${u.email}"><i class="fas fa-eye"></i> Lihat</button> <button class="deleteUserBtn" data-id="${u.id}"><i class="fas fa-trash"></i> Hapus</button></div></div>`).join('')||'<p>✨ Belum ada user lain</p>'}</div></div>
                 </div>
-                <div style="text-align:center; margin-top:20px;"><button id="gotoMySettingsFromAdmin" class="btn-primary"><i class="fas fa-user-cog"></i> Edit Profile Saya</button></div>
+                <div style="text-align:center; margin-top:20px;"><button id="gotoMySettingsAdmin" class="btn-primary"><i class="fas fa-user-cog"></i> Edit Profile Saya</button></div>
             `;
-            document.querySelectorAll('.view-user-btn').forEach(btn=>{
-                btn.addEventListener('click',()=> window.open(`?user=${btn.dataset.username}`,'_blank'));
-            });
-            document.querySelectorAll('.delete-user-btn').forEach(btn=>{
-                btn.addEventListener('click',async()=>{
-                    if(confirm('Hapus user ini secara permanen?')){
-                        await deleteUserById(btn.dataset.uid, true);
-                        showToast('User berhasil dihapus');
-                        renderAdminDashboard();
-                    }
-                });
-            });
+            document.querySelectorAll('.viewUserBtn').forEach(btn=>btn.addEventListener('click',()=>window.open(`?user=${btn.dataset.email}`,'_blank')));
+            document.querySelectorAll('.deleteUserBtn').forEach(btn=>btn.addEventListener('click',async()=>{ if(confirm('Hapus user permanen?')){ await deleteUserById(btn.dataset.id); renderAdminDashboard(); showToast('User dihapus'); } }));
             document.getElementById('refreshAdminBtn')?.addEventListener('click',()=>renderAdminDashboard());
-            document.getElementById('gotoMySettingsFromAdmin')?.addEventListener('click',()=>{ window.history.pushState({},'','/'); renderApp(); });
-            const navDiv=document.getElementById('navLinks');
-            navDiv.innerHTML=`<span class="badge-admin"><i class="fas fa-crown"></i> ADMIN</span><button id="logoutAdminBtn" class="btn-outline">Logout</button>`;
+            document.getElementById('gotoMySettingsAdmin')?.addEventListener('click',()=>{ window.history.pushState({},'','/'); renderApp(); });
+            document.getElementById('navLinks').innerHTML=`<span class="badge-admin"><i class="fas fa-crown"></i> ADMIN</span><button id="logoutAdminBtn" class="btn-outline">Logout</button>`;
             document.getElementById('logoutAdminBtn')?.addEventListener('click',logout);
         }
 
-        // ---------- SETTINGS USER (biasa & admin juga bisa edit diri sendiri) ----------
+        // ----------------------- USER SETTINGS (PROFIL, LINK, DLL) -----------------------
         async function renderUserSettings() {
             if(!currentUser) return renderApp();
-            const fresh = await getUserByUsername(currentUser.username);
+            let fresh = await getUserByEmail(currentUser.email);
             if(fresh) currentUser = fresh;
             applyTheme(currentUser);
-            const bioArr = (currentUser.bio||'').split(',').map(s=>s.trim()).filter(s=>s);
-            const customLinksHtml = (currentUser.customLinks||[]).map((l,idx)=>`
-                <div style="display:flex;gap:12px;margin-bottom:12px;">
-                    <input type="text" placeholder="Nama link" value="${escapeHtml(l.name)}" data-cname="${idx}" style="flex:1">
-                    <input type="text" placeholder="URL" value="${escapeHtml(l.url)}" data-curls="${idx}" style="flex:2">
-                    <button data-removeCust="${idx}" style="background:#ef4444aa; border:none; width:42px; border-radius:30px; color:white;">✖</button>
-                </div>
-            `).join('');
-            let previewAvatar= currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut"></i>';
+            let bioArr=(currentUser.bio||'').split(',').map(s=>s.trim());
+            let customLinksHtml=(currentUser.customLinks||[]).map((l,idx)=>`<div style="display:flex;gap:12px;margin-bottom:12px;"><input type="text" placeholder="Nama link" value="${escapeHtml(l.name)}" data-cname="${idx}" style="flex:1"><input type="text" placeholder="URL" value="${escapeHtml(l.url)}" data-curls="${idx}" style="flex:2"><button data-removeCust="${idx}" style="background:#ef4444aa; border:none; border-radius:30px; width:40px;">✖</button></div>`).join('');
+            let previewAvatar=currentUser.avatar?`<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">`:'<i class="fas fa-user-astronaut"></i>';
             let previewLinks='';
-            const platforms=['instagram','tiktok','youtube','github','whatsapp','discord'];
-            platforms.forEach(p=>{ if(currentUser.links?.[p]?.trim()) previewLinks+=`<div class="preview-link"><div class="preview-link-left"><i class="fab fa-${p}"></i><span>${p.charAt(0).toUpperCase()+p.slice(1)}</span></div><i class="fas fa-arrow-right"></i></div>`; });
-            if(currentUser.customLinks) currentUser.customLinks.forEach(l=>{ if(l.name) previewLinks+=`<div class="preview-link"><div class="preview-link-left"><i class="fas fa-link"></i><span>${escapeHtml(l.name)}</span></div><i class="fas fa-arrow-right"></i></div>`; });
-            let spotPreview='';
-            if(currentUser.spotifyId){ let sid=currentUser.spotifyId; if(sid.includes('playlist/')){ let m=sid.match(/playlist\/([a-zA-Z0-9]+)/); if(m) sid=m[1]; } spotPreview=`<iframe src="https://open.spotify.com/embed/playlist/${sid}?utm_source=generator" style="border-radius:20px;width:100%;height:132px;" frameborder="0"></iframe>`; }
-            const userUrl = `${window.location.origin}${window.location.pathname}?user=${currentUser.username}`;
-
+            ['instagram','tiktok','youtube','github','whatsapp','discord'].forEach(p=>{ if(currentUser.links?.[p]?.trim()) previewLinks+=`<div class="preview-link"><div><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></div>`; });
+            let spotPreview=''; if(currentUser.spotifyId){ let sid=currentUser.spotifyId; if(sid.includes('playlist/')){ let m=sid.match(/playlist\/([a-zA-Z0-9]+)/); if(m) sid=m[1]; } spotPreview=`<iframe src="https://open.spotify.com/embed/playlist/${sid}" style="border-radius:20px;width:100%;height:132px;" frameborder="0"></iframe>`; }
+            let userUrl = `${window.location.origin}${window.location.pathname}?user=${currentUser.email}`;
             document.getElementById('mainContainer').innerHTML=`
                 <div class="settings-wrapper">
                     <div class="form-card">
-                        <h2><i class="fas fa-sliders-h"></i>  Edit Profile</h2>
-                        <div class="form-group"><label>📸 Foto</label><div style="display:flex;gap:16px;align-items:center;"><div class="preview-avatar" id="avatarUploadTrigger" style="width:80px;height:80px;cursor:pointer;">${currentUser.avatar?`<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">`:'<i class="fas fa-camera"></i>'}</div><input type="file" id="avatarFileInput" style="display:none" accept="image/*"><button id="clearAvatarBtn" class="btn-outline">Hapus foto</button></div></div>
-                        <div class="form-group"><label>Nama tampilan</label><input type="text" id="displayName" value="${escapeHtml(currentUser.displayName||'')}"></div>
-                        <div class="form-group"><label>Bio (pisah koma untuk efek mengetik)</label><textarea id="bio" rows="3">${escapeHtml(currentUser.bio||'')}</textarea></div>
-                        <div class="section-title">🌐 Sosial Media</div>
-                        ${['instagram','tiktok','youtube','github','whatsapp','discord'].map(p=>`<div class="form-group"><label>${p}</label><input type="text" id="${p}Url" value="${escapeHtml(currentUser.links?.[p]||'')}" placeholder="https://..."></div>`).join('')}
+                        <h2><i class="fas fa-sliders-h"></i> Edit Profil</h2>
+                        <div class="form-group"><label>📸 Foto Profil</label><div style="display:flex;gap:16px;"><div class="preview-avatar" id="avatarTrigger" style="width:80px;height:80px;cursor:pointer;">${previewAvatar}</div><input type="file" id="avatarFile" style="display:none" accept="image/*"><button id="clearAvatarBtn" class="btn-outline">Hapus foto</button></div></div>
+                        <div class="form-group"><label>Nama tampilan</label><input type="text" id="displayName" value="${escapeHtml(currentUser.displayName)}"></div>
+                        <div class="form-group"><label>Bio (pisah koma untuk efek mengetik)</label><textarea id="bio" rows="3">${escapeHtml(currentUser.bio)}</textarea></div>
+                        <div class="section-title">🌐 Social Media</div>
+                        ${['instagram','tiktok','youtube','github','whatsapp','discord'].map(p=>`<div class="form-group"><label>${p}</label><input type="text" id="${p}Url" value="${escapeHtml(currentUser.links?.[p]||'')}"></div>`).join('')}
                         <div class="section-title">🏷️ Teks card belakang (flip)</div>
                         ${['instagram','tiktok','youtube','github'].map(p=>`<div class="form-group"><label>${p}</label><input type="text" id="back${p}" value="${escapeHtml(currentUser.backTexts?.[p]||'')}"></div>`).join('')}
-                        <div class="section-title">🔗 Custom Link</div><div id="customLinksContainer">${customLinksHtml}</div><button id="addCustomLinkBtn" class="btn-outline" style="width:100%;"><i class="fas fa-plus-circle"></i> Tambah link</button>
-                        <div class="section-title">🎵 Spotify Playlist</div><div class="form-group"><input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId||'')}" placeholder="ID playlist atau URL"></div>
+                        <div class="section-title">🔗 Custom Link</div><div id="customLinksWrap">${customLinksHtml}</div><button id="addCustomLinkBtn" class="btn-outline" style="width:100%;"><i class="fas fa-plus-circle"></i> Tambah Link</button>
+                        <div class="section-title">🎵 Spotify Playlist ID</div><div class="form-group"><input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId||'')}" placeholder="ID playlist atau URL"></div>
                         <div class="section-title">🎨 Tema & Background</div><div class="form-group"><select id="themeMode"><option value="light" ${currentUser.theme==='light'?'selected':''}>Light</option><option value="dark" ${currentUser.theme==='dark'?'selected':''}>Dark</option></select></div>
                         <div class="form-group"><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage||'')}" placeholder="URL background (gambar)"></div>
-                        <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-cloud-upload-alt"></i> Simpan ke Firebase</button>
-                        <div class="url-box"><i class="fas fa-link"></i> LinkTree publik mu<br><code style="background:#00000055;padding:8px;border-radius:30px;display:inline-block;margin:10px 0;">${userUrl}</code><br><button id="copyPublicUrl" class="btn-outline" style="padding:6px 14px;"><i class="fas fa-copy"></i> Salin URL</button><button id="openPublicPreview" class="btn-primary" style="margin-left:10px;background:#1DB954;"><i class="fas fa-external-link-alt"></i> Lihat Preview</button></div>
+                        <button id="saveUserSettingsBtn" class="save-btn"><i class="fas fa-cloud-upload-alt"></i> Simpan ke Firebase</button>
+                        <div class="url-box" style="margin-top:20px; background:#00000033; border-radius:30px; padding:16px;"><i class="fas fa-link"></i> Link publik kamu:<br><code>${userUrl}</code><br><button id="copyPublicLinkBtn" class="btn-outline" style="margin-top:8px;">Salin URL</button> <button id="openPublicPreviewBtn" class="btn-primary" style="background:#1DB954;">Lihat Preview</button></div>
                     </div>
-                    <div class="preview-card">
-                        <h3><i class="fas fa-mobile-alt"></i> Live Preview</h3>
-                        <div style="text-align:center;"><div class="preview-avatar" style="margin:0 auto;">${previewAvatar}</div><div class="preview-name">${escapeHtml(currentUser.displayName||'@'+currentUser.username)}</div><div class="preview-bio">${escapeHtml(bioArr[0]||'')}</div></div>
-                        <div>${previewLinks}</div>${spotPreview}
-                    </div>
+                    <div class="preview-card"><h3><i class="fas fa-eye"></i> Live Preview</h3><div style="text-align:center;"><div class="preview-avatar">${previewAvatar}</div><div class="preview-name">${escapeHtml(currentUser.displayName)}</div><div class="preview-bio">${escapeHtml(bioArr[0]||'')}</div></div>${previewLinks}${spotPreview}</div>
                 </div>
             `;
             // Avatar upload
-            const uploadTrigger=document.getElementById('avatarUploadTrigger'), fileInput=document.getElementById('avatarFileInput');
-            uploadTrigger?.addEventListener('click',()=>fileInput.click());
-            fileInput?.addEventListener('change',e=>{ let f=e.target.files[0]; if(f&&f.type.startsWith('image/')){ let rd=new FileReader(); rd.onload=async ev=>{ await updateUser(currentUser.id,{avatar:ev.target.result}); showToast('Foto diupdate'); renderUserSettings(); }; rd.readAsDataURL(f); } });
-            document.getElementById('clearAvatarBtn')?.addEventListener('click',async()=>{ await updateUser(currentUser.id,{avatar:null}); showToast('Foto dihapus'); renderUserSettings(); });
-            document.getElementById('saveSettingsBtn')?.addEventListener('click',async ()=>{
+            let trig=document.getElementById('avatarTrigger'), fileInp=document.getElementById('avatarFile');
+            trig?.addEventListener('click',()=>fileInp.click());
+            fileInp?.addEventListener('change',e=>{ let f=e.target.files[0]; if(f){ let rd=new FileReader(); rd.onload=async ev=>{ await updateUser(currentUser.id,{avatar:ev.target.result}); showToast('Avatar diperbarui'); renderUserSettings(); }; rd.readAsDataURL(f); } });
+            document.getElementById('clearAvatarBtn')?.addEventListener('click',async()=>{ await updateUser(currentUser.id,{avatar:null}); renderUserSettings(); });
+            document.getElementById('saveUserSettingsBtn')?.addEventListener('click',async()=>{
                 let customLinks=[];
-                document.querySelectorAll('[data-cname]').forEach(inp=>{ let idx=parseInt(inp.dataset.cname); let urlInp=document.querySelector(`[data-curls="${idx}"]`); if(inp.value.trim() && urlInp?.value.trim()) customLinks.push({name:inp.value.trim(), url:urlInp.value.trim()}); });
-                await updateUser(currentUser.id,{
-                    displayName:document.getElementById('displayName').value,
-                    bio:document.getElementById('bio').value,
-                    links:{ instagram:document.getElementById('instagramUrl')?.value||'', tiktok:document.getElementById('tiktokUrl')?.value||'', youtube:document.getElementById('youtubeUrl')?.value||'', github:document.getElementById('githubUrl')?.value||'', whatsapp:document.getElementById('whatsappUrl')?.value||'', discord:document.getElementById('discordUrl')?.value||'' },
-                    backTexts:{ instagram:document.getElementById('backinstagram')?.value||'', tiktok:document.getElementById('backtiktok')?.value||'', youtube:document.getElementById('backyoutube')?.value||'', github:document.getElementById('backgithub')?.value||'' },
-                    customLinks, spotifyId:document.getElementById('spotifyId').value, theme:document.getElementById('themeMode').value, bgImage:document.getElementById('bgImage').value
-                });
-                showToast('✅ Berhasil disimpan di Firebase!');
+                document.querySelectorAll('[data-cname]').forEach(inp=>{ let idx=inp.dataset.cname; let urlInp=document.querySelector(`[data-curls="${idx}"]`); if(inp.value.trim() && urlInp?.value.trim()) customLinks.push({name:inp.value.trim(), url:urlInp.value.trim()}); });
+                await updateUser(currentUser.id,{ displayName:document.getElementById('displayName').value, bio:document.getElementById('bio').value, links:{ instagram:document.getElementById('instagramUrl')?.value||'', tiktok:document.getElementById('tiktokUrl')?.value||'', youtube:document.getElementById('youtubeUrl')?.value||'', github:document.getElementById('githubUrl')?.value||'', whatsapp:document.getElementById('whatsappUrl')?.value||'', discord:document.getElementById('discordUrl')?.value||'' }, backTexts:{ instagram:document.getElementById('backinstagram')?.value||'', tiktok:document.getElementById('backtiktok')?.value||'', youtube:document.getElementById('backyoutube')?.value||'', github:document.getElementById('backgithub')?.value||'' }, customLinks, spotifyId:document.getElementById('spotifyId').value, theme:document.getElementById('themeMode').value, bgImage:document.getElementById('bgImage').value });
+                showToast('✅ Data tersimpan di Firebase!');
                 renderUserSettings();
             });
             document.getElementById('addCustomLinkBtn')?.addEventListener('click',async()=>{ let newLinks=[...(currentUser.customLinks||[]),{name:'',url:''}]; await updateUser(currentUser.id,{customLinks:newLinks}); renderUserSettings(); });
-            document.querySelectorAll('[data-removeCust]').forEach(btn=>{ btn.addEventListener('click',async()=>{ let idx=parseInt(btn.dataset.removeCust); let arr=[...(currentUser.customLinks||[])]; arr.splice(idx,1); await updateUser(currentUser.id,{customLinks:arr}); renderUserSettings(); }); });
-            document.getElementById('copyPublicUrl')?.addEventListener('click',()=>{ navigator.clipboard.writeText(userUrl); showToast('URL disalin!'); });
-            document.getElementById('openPublicPreview')?.addEventListener('click',()=>window.open(`?user=${currentUser.username}`,'_blank'));
-            const navDiv=document.getElementById('navLinks');
-            if(currentUser.isAdmin) navDiv.innerHTML=`<span class="badge-admin"><i class="fas fa-shield-alt"></i> Admin</span><button id="adminDashboardBtn" class="btn-outline"><i class="fas fa-tachometer-alt"></i> Dashboard</button><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
-            else navDiv.innerHTML=`<span>👋 ${escapeHtml(currentUser.displayName||currentUser.username)}</span><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
-            document.getElementById('adminDashboardBtn')?.addEventListener('click',()=>renderAdminDashboard());
+            document.querySelectorAll('[data-removeCust]').forEach(btn=>btn.addEventListener('click',async()=>{ let idx=btn.dataset.removeCust; let arr=[...(currentUser.customLinks||[])]; arr.splice(idx,1); await updateUser(currentUser.id,{customLinks:arr}); renderUserSettings(); }));
+            document.getElementById('copyPublicLinkBtn')?.addEventListener('click',()=>{ navigator.clipboard.writeText(userUrl); showToast('URL disalin'); });
+            document.getElementById('openPublicPreviewBtn')?.addEventListener('click',()=>window.open(`?user=${currentUser.email}`,'_blank'));
+            let navDiv=document.getElementById('navLinks');
+            if(currentUser.isAdmin) navDiv.innerHTML=`<span class="badge-admin">Admin</span><button id="adminDashBtn" class="btn-outline"><i class="fas fa-tachometer-alt"></i> Dashboard</button><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
+            else navDiv.innerHTML=`<span>👋 ${escapeHtml(currentUser.displayName)}</span><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
+            document.getElementById('adminDashBtn')?.addEventListener('click',()=>renderAdminDashboard());
             document.getElementById('logoutUserBtn')?.addEventListener('click',logout);
         }
 
-        // ---------- WELCOME ----------
-        function renderWelcome() {
-            document.body.className='light-mode';
-            document.getElementById('mainContainer').innerHTML=`
-                <div style="text-align:center;padding:70px 20px;">
-                    <h1 style="font-size:56px;">LinkTree <span style="background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;background-clip:text;color:transparent;">Pro</span></h1>
-                    <p style="font-size:18px;margin:20px 0;">Bikin halaman link kamu sendiri, data tersimpan di cloud 🔥</p>
-                    <div style="display:flex;gap:20px;justify-content:center;"><button id="welcomeLogin" class="btn-primary">Login</button><button id="welcomeRegister" class="btn-outline">Daftar Gratis</button></div>
-                    <div style="background:rgba(255,255,255,0.08); max-width:550px;margin:50px auto;border-radius:32px;padding:25px;"><i class="fas fa-database"></i>  Semua perubahan tersimpan di Firebase, bisa diakses dari mana saja.</div>
-                </div>`;
-            document.getElementById('welcomeLogin')?.addEventListener('click',()=>openModal('login'));
-            document.getElementById('welcomeRegister')?.addEventListener('click',()=>openModal('register'));
-            document.getElementById('navLinks').innerHTML=`<button id="navWelcomeLogin" class="btn-primary">Login</button>`;
-            document.getElementById('navWelcomeLogin')?.addEventListener('click',()=>openModal('login'));
-        }
-
+        // ----------------------- MAIN ROUTER -----------------------
         async function renderApp() {
-            const urlUser = new URLSearchParams(window.location.search).get('user');
-            if(urlUser && (!currentUser || currentUser.username !== urlUser)) return renderPublicLinktree(urlUser);
+            let urlEmail = new URLSearchParams(window.location.search).get('user');
+            if(urlEmail && (!currentUser || currentUser.email !== urlEmail)) return renderPublicLinktree(urlEmail);
             if(currentUser && currentUser.isAdmin && !window.location.search.includes('user')) return renderAdminDashboard();
             if(currentUser) return renderUserSettings();
-            renderWelcome();
+            // Welcome screen
+            document.body.className='light-mode';
+            document.getElementById('mainContainer').innerHTML=`<div style="text-align:center;padding:70px;"><h1 style="font-size:52px;">LinkTree <span style="background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;background-clip:text;color:transparent;">Pro</span></h1><p style="margin:20px 0;">Buat halaman link pribadi, login via OTP email</p><div style="display:flex;gap:20px;justify-content:center;"><button id="welcomeLoginBtn" class="btn-primary">Login</button><button id="welcomeRegBtn" class="btn-outline">Daftar</button></div></div>`;
+            document.getElementById('navLinks').innerHTML=`<button id="navLoginBtn" class="btn-primary">Login</button>`;
+            document.getElementById('welcomeLoginBtn')?.addEventListener('click',()=>openModal('login'));
+            document.getElementById('welcomeRegBtn')?.addEventListener('click',()=>openModal('register'));
+            document.getElementById('navLoginBtn')?.addEventListener('click',()=>openModal('login'));
         }
 
-        function logout(){ currentUser=null; localStorage.clear(); showToast('Logout berhasil'); renderApp(); }
+        function logout(){ currentUser=null; localStorage.clear(); showToast('Berhasil logout'); renderApp(); }
         function openModal(type){ document.getElementById(type==='login'?'loginModal':'registerModal').classList.add('show'); }
         function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')); }
 
-        // events modal
-        document.getElementById('doLoginBtn')?.addEventListener('click',async()=>{
-            let res=await login(loginUsername.value, loginPassword.value);
-            if(res.success){ currentUser=res.user; localStorage.setItem('currentUserId',currentUser.id); closeModals(); renderApp(); }
-            else alert(res.error);
-        });
-        document.getElementById('doRegisterBtn')?.addEventListener('click',async()=>{
-            let res=await register(regUsername.value, regPassword.value, regDisplayName.value);
-            if(res.success){ alert('✅ Daftar sukses! Silakan login.'); closeModals(); loginUsername.value=regUsername.value; openModal('login'); }
-            else alert(res.error);
-        });
+        // Modal event
+        document.getElementById('sendOtpBtn')?.addEventListener('click',async()=>{ let email=document.getElementById('loginEmail').value; if(!email) return alert('Masukkan email'); let ok=await requestOtp(email); if(ok) document.getElementById('otpSection').style.display='block'; });
+        document.getElementById('verifyOtpBtn')?.addEventListener('click',async()=>{ let code=document.getElementById('otpCode').value; await verifyOtpAndLogin(code); });
+        document.getElementById('doRegisterBtn')?.addEventListener('click',async()=>{ let email=document.getElementById('regEmail').value, name=document.getElementById('regDisplayName').value; if(!email) return alert('Email wajib diisi'); let res=await registerUser(email,name); if(res.success){ alert('✅ Pendaftaran berhasil! Silakan login dengan OTP'); closeModals(); document.getElementById('loginEmail').value=email; openModal('login'); } else alert(res.error); });
         document.getElementById('showRegisterBtn')?.addEventListener('click',e=>{ e.preventDefault(); closeModals(); openModal('register'); });
         document.getElementById('showLoginFromRegBtn')?.addEventListener('click',e=>{ e.preventDefault(); closeModals(); openModal('login'); });
         document.getElementById('homeLogo')?.addEventListener('click',()=>{ window.history.pushState({},'','/'); renderApp(); });
 
-        createAdminIfEmpty().then(()=>{
-            let saved=localStorage.getItem('currentUserId');
-            if(saved) getAllUsers().then(users=>{ currentUser=users.find(u=>u.id===saved); renderApp(); });
-            else renderApp();
-        });
+        createAdminIfMissing().then(()=>{ let saved=localStorage.getItem('currentUserId'); if(saved){ getAllUsers().then(users=>{ let u=users.find(uu=>uu.id===saved); if(u){ currentUser=u; renderApp(); } else renderApp(); }); } else renderApp(); });
     </script>
 </body>
 </html>
