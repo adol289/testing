@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LinkTree Pro – Xtxz Putra</title>
+    <title>LinkTree Pro – Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -113,7 +113,6 @@
         const database = firebase.database();
 
         // ======================= EMAILJS =======================
-        // Inisialisasi dengan Public Key
         emailjs.init("VfSqUvKD22MIGrRXo");
         const EMAILJS_SERVICE = "service_jtrmkao";
         const EMAILJS_TEMPLATE = "template_5q6brxe";
@@ -121,9 +120,7 @@
         let currentUser = null;
         let pendingOtpEmail = null;
         let generatedOtp = null;
-        let emailjsWorking = true; // flag untuk cek apakah emailjs berfungsi
 
-        // Helper
         function showToast(msg) {
             let t = document.createElement('div');
             t.className = 'toast';
@@ -230,71 +227,37 @@
             let existing = await getUserByEmail('admin@xtxz.com');
             if (!existing) {
                 await registerUser('admin@xtxz.com', 'Xtxz Admin');
-                console.log('✅ Admin created: admin@xtxz.com');
             }
         }
 
-        // ----------------------- EMAIL OTP (DENGAN FALLBACK) -----------------------
-        function generateOtp() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
-        }
+        // ----------------------- OTP -----------------------
+        function generateOtp() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
         async function sendEmailOtp(email, otp, displayName) {
-            // Coba kirim via EmailJS
             try {
-                const templateParams = {
-                    to_email: email,
-                    otp_code: otp,
-                    display_name: displayName || email.split('@')[0]
-                };
-                
-                console.log('Mengirim OTP via EmailJS...', { service: EMAILJS_SERVICE, template: EMAILJS_TEMPLATE, email });
-                
-                const result = await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams);
-                console.log('EmailJS response:', result);
-                
-                if (result.status === 200) {
-                    showToast(`✅ Kode OTP dikirim ke ${email}`);
-                    return true;
-                } else {
-                    throw new Error('Status tidak 200');
-                }
+                const templateParams = { to_email: email, otp_code: otp, display_name: displayName || email.split('@')[0] };
+                await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams);
+                showToast(`✅ Kode OTP dikirim ke ${email}`);
+                return true;
             } catch (error) {
-                console.error('EmailJS error:', error);
-                // Fallback: tampilkan OTP di alert dan di demo box
-                const errorMsg = error.text || error.message || 'Unknown error';
-                console.log('Fallback mode: OTP akan ditampilkan di alert');
-                
-                // Tampilkan demo box dengan OTP
+                console.error(error);
                 const demoBox = document.getElementById('otpDemoBox');
                 const demoSpan = document.getElementById('demoOtpCode');
-                if (demoBox && demoSpan) {
-                    demoSpan.innerHTML = `<strong style="font-size:24px; letter-spacing:4px;">${otp}</strong>`;
-                    demoBox.style.display = 'block';
-                }
-                
-                // Alert sebagai fallback
-                alert(`🔐 KODE OTP ANDA: ${otp}\n\n(Gagal kirim email: ${errorMsg.substring(0, 100)})\n\nMasukkan kode di atas untuk login.`);
-                showToast(`⚠️ Gagal kirim email, kode OTP: ${otp} (cek alert)`);
-                return true; // Tetap return true karena user bisa lihat OTP di alert
+                if (demoBox && demoSpan) { demoSpan.innerHTML = `<strong style="font-size:24px; letter-spacing:4px;">${otp}</strong>`; demoBox.style.display = 'block'; }
+                alert(`🔐 KODE OTP ANDA: ${otp}\n\nMasukkan kode di atas untuk login.`);
+                showToast(`⚠️ Kode OTP: ${otp} (cek alert)`);
+                return true;
             }
         }
 
         async function requestOtp(email) {
             let user = await getUserByEmail(email);
-            if (!user) {
-                showToast('❌ Email belum terdaftar, silakan daftar dulu');
-                return false;
-            }
+            if (!user) { showToast('❌ Email belum terdaftar'); return false; }
             pendingOtpEmail = email;
             generatedOtp = generateOtp();
-            
-            // Sembunyikan demo box lama
             const demoBox = document.getElementById('otpDemoBox');
             if (demoBox) demoBox.style.display = 'none';
-            
-            let success = await sendEmailOtp(email, generatedOtp, user.displayName);
-            return success;
+            return await sendEmailOtp(email, generatedOtp, user.displayName);
         }
 
         async function verifyOtpAndLogin(otpCode) {
@@ -307,261 +270,81 @@
                     generatedOtp = null;
                     closeModals();
                     renderApp();
-                    showToast(`✨ Selamat datang ${user.displayName}`);
                     return true;
                 }
             }
-            showToast('❌ Kode OTP salah / sudah kadaluarsa');
+            showToast('❌ Kode OTP salah');
             return false;
         }
 
-        // ----------------------- RENDER PUBLIC LINKTREE -----------------------
-        async function renderPublicLinktree(emailUser) {
-            let user = await getUserByEmail(emailUser);
-            if (!user) {
-                document.getElementById('mainContainer').innerHTML = `
-                    <div style="text-align:center;padding:80px;">
-                        <h2>😢 User tidak ditemukan</h2>
-                        <button class="btn-primary" onclick="location.reload()">Kembali</button>
-                    </div>
-                `;
-                return;
-            }
-            
-            applyTheme(user);
-            let bioArr = (user.bio || '').split(',').map(s => s.trim());
-            let avatarHtml = user.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut" style="font-size:50px;"></i>';
-            
-            let linksHtml = '';
-            const platforms = ['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'];
-            platforms.forEach(p => {
-                let url = user.links?.[p];
-                if (url && url.trim()) {
-                    linksHtml += `<div class="preview-link"><div><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></div>`;
-                }
-            });
-            
-            if (user.customLinks) {
-                user.customLinks.forEach(l => {
-                    if (l.name && l.url) {
-                        linksHtml += `<div class="preview-link"><div><i class="fas fa-link"></i> ${escapeHtml(l.name)}</div><i class="fas fa-arrow-right"></i></div>`;
-                    }
-                });
-            }
-            
-            let spotifyHtml = '';
-            if (user.spotifyId) {
-                let id = user.spotifyId;
-                if (id.includes('playlist/')) {
-                    let m = id.match(/playlist\/([a-zA-Z0-9]+)/);
-                    if (m) id = m[1];
-                }
-                spotifyHtml = `<iframe src="https://open.spotify.com/embed/playlist/${id}" style="border-radius:20px;width:100%;height:132px;" frameborder="0"></iframe>`;
-            }
-            
-            document.getElementById('mainContainer').innerHTML = `
-                <div style="max-width:550px;margin:0 auto;">
-                    <div style="text-align:center;">
-                        <div class="preview-avatar">${avatarHtml}</div>
-                        <div class="preview-name">${escapeHtml(user.displayName)}</div>
-                        <div class="preview-bio">${escapeHtml(bioArr[0] || '')}</div>
-                    </div>
-                    ${linksHtml}
-                    ${spotifyHtml}
-                    <div style="text-align:center;font-size:11px;margin-top:32px;opacity:0.6;">🔗 LinkTree Pro — bagikan profilmu</div>
-                </div>
-            `;
-            
-            let navDiv = document.getElementById('navLinks');
-            if (currentUser) {
-                navDiv.innerHTML = `<span>👋 ${escapeHtml(currentUser.displayName)}</span><button id="goSettingsNav" class="btn-outline">⚙️ Settings</button><button id="logoutNavBtn" class="btn-outline">Logout</button>`;
-                document.getElementById('goSettingsNav')?.addEventListener('click', () => {
-                    window.history.pushState({}, '', '/');
-                    renderApp();
-                });
-                document.getElementById('logoutNavBtn')?.addEventListener('click', logout);
-            } else {
-                navDiv.innerHTML = `<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
-                document.getElementById('navLoginBtn')?.addEventListener('click', () => openModal('login'));
-            }
-        }
-
-        // ----------------------- ADMIN DASHBOARD -----------------------
+        // ----------------------- RENDER ADMIN -----------------------
         async function renderAdminDashboard() {
             let allUsers = await getAllUsers();
             let normalUsers = allUsers.filter(u => u.email !== 'admin@xtxz.com');
-            
             document.getElementById('mainContainer').innerHTML = `
                 <div class="admin-dashboard">
-                    <div class="admin-stats">
-                        <h3><i class="fas fa-chart-line"></i> Statistik</h3>
-                        <p style="font-size:32px;font-weight:800;margin:15px 0;">${normalUsers.length}</p>
-                        <p>Total pengguna terdaftar</p>
-                        <button id="refreshAdminBtn" class="btn-outline" style="margin-top:16px;"><i class="fas fa-sync-alt"></i> Refresh</button>
-                    </div>
-                    <div class="admin-user-list">
-                        <h3><i class="fas fa-users"></i> Manajemen Pengguna</h3>
-                        <div id="adminUserList">
-                            ${normalUsers.length === 0 ? '<p style="opacity:0.7;">✨ Belum ada user lain</p>' : 
-                                normalUsers.map(u => `
-                                    <div class="user-row">
-                                        <div><strong>${escapeHtml(u.email)}</strong><br><small>${escapeHtml(u.displayName)}</small></div>
-                                        <div>
-                                            <button class="viewUserBtn" data-email="${u.email}" style="background:#1DB954;border:none;padding:6px 12px;border-radius:20px;color:white;cursor:pointer;">Lihat</button>
-                                            <button class="deleteUserBtn" data-id="${u.id}" style="background:#ef4444;border:none;padding:6px 12px;border-radius:20px;color:white;cursor:pointer;margin-left:8px;">Hapus</button>
-                                        </div>
-                                    </div>
-                                `).join('')
-                            }
-                        </div>
-                    </div>
+                    <div class="admin-stats"><h3><i class="fas fa-chart-line"></i> Statistik</h3><p style="font-size:32px;font-weight:800;margin:15px 0;">${normalUsers.length}</p><p>Total pengguna</p><button id="refreshAdminBtn" class="btn-outline" style="margin-top:16px;"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+                    <div class="admin-user-list"><h3><i class="fas fa-users"></i> Manajemen Pengguna</h3><div id="adminUserList">${normalUsers.length === 0 ? '<p>✨ Belum ada user lain</p>' : normalUsers.map(u => `<div class="user-row"><div><strong>${escapeHtml(u.email)}</strong><br><small>${escapeHtml(u.displayName)}</small></div><div><button class="viewUserBtn" data-email="${u.email}" style="background:#1DB954;border:none;padding:6px 12px;border-radius:20px;color:white;cursor:pointer;">Lihat Preview</button><button class="deleteUserBtn" data-id="${u.id}" style="background:#ef4444;border:none;padding:6px 12px;border-radius:20px;color:white;cursor:pointer;margin-left:8px;">Hapus</button></div></div>`).join('')}</div></div>
                 </div>
-                <div style="text-align:center; margin-top:20px;">
-                    <button id="gotoMySettingsAdmin" class="btn-primary"><i class="fas fa-user-cog"></i> Edit Profile Saya</button>
-                </div>
+                <div style="text-align:center; margin-top:20px;"><button id="gotoMySettingsAdmin" class="btn-primary"><i class="fas fa-user-cog"></i> Edit Profile Saya</button></div>
             `;
-            
-            document.querySelectorAll('.viewUserBtn').forEach(btn => {
-                btn.addEventListener('click', () => window.open(`?user=${btn.dataset.email}`, '_blank'));
-            });
-            
-            document.querySelectorAll('.deleteUserBtn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    if (confirm('Hapus user permanen?')) {
-                        await deleteUserById(btn.dataset.id);
-                        showToast('User berhasil dihapus');
-                        renderAdminDashboard();
-                    }
-                });
-            });
-            
+            document.querySelectorAll('.viewUserBtn').forEach(btn => btn.addEventListener('click', () => window.open(`preview.html?email=${btn.dataset.email}`, '_blank')));
+            document.querySelectorAll('.deleteUserBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm('Hapus user?')) { await deleteUserById(btn.dataset.id); renderAdminDashboard(); showToast('User dihapus'); } }));
             document.getElementById('refreshAdminBtn')?.addEventListener('click', () => renderAdminDashboard());
-            document.getElementById('gotoMySettingsAdmin')?.addEventListener('click', () => {
-                window.history.pushState({}, '', '/');
-                renderApp();
-            });
-            
-            document.getElementById('navLinks').innerHTML = `<span class="badge-admin"><i class="fas fa-crown"></i> ADMIN</span><button id="logoutAdminBtn" class="btn-outline">Logout</button>`;
+            document.getElementById('gotoMySettingsAdmin')?.addEventListener('click', () => { window.location.href = 'index.html'; });
+            document.getElementById('navLinks').innerHTML = `<span class="badge-admin">ADMIN</span><button id="logoutAdminBtn" class="btn-outline">Logout</button>`;
             document.getElementById('logoutAdminBtn')?.addEventListener('click', logout);
         }
 
-        // ----------------------- USER SETTINGS (disingkat karena panjang, tetap sama fungsinya) -----------------------
+        // ----------------------- RENDER USER SETTINGS -----------------------
         async function renderUserSettings() {
             if (!currentUser) return renderApp();
-            
             let fresh = await getUserByEmail(currentUser.email);
             if (fresh) currentUser = fresh;
             applyTheme(currentUser);
-            
             let bioArr = (currentUser.bio || '').split(',').map(s => s.trim());
-            let customLinksHtml = (currentUser.customLinks || []).map((l, idx) => `
-                <div style="display:flex;gap:12px;margin-bottom:12px;">
-                    <input type="text" placeholder="Nama link" value="${escapeHtml(l.name)}" data-cname="${idx}" style="flex:1">
-                    <input type="text" placeholder="URL" value="${escapeHtml(l.url)}" data-curls="${idx}" style="flex:2">
-                    <button data-removeCust="${idx}" style="background:#ef4444aa; border:none; border-radius:30px; width:40px; cursor:pointer;">✖</button>
-                </div>
-            `).join('');
-            
+            let customLinksHtml = (currentUser.customLinks || []).map((l, idx) => `<div style="display:flex;gap:12px;margin-bottom:12px;"><input type="text" placeholder="Nama link" value="${escapeHtml(l.name)}" data-cname="${idx}" style="flex:1"><input type="text" placeholder="URL" value="${escapeHtml(l.url)}" data-curls="${idx}" style="flex:2"><button data-removeCust="${idx}" style="background:#ef4444aa; border:none; border-radius:30px; width:40px; cursor:pointer;">✖</button></div>`).join('');
             let previewAvatar = currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user-astronaut"></i>';
             let previewLinks = '';
-            ['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'].forEach(p => {
-                if (currentUser.links?.[p]?.trim()) {
-                    previewLinks += `<div class="preview-link"><div><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></div>`;
-                }
-            });
-            
+            ['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'].forEach(p => { if (currentUser.links?.[p]?.trim()) previewLinks += `<div class="preview-link"><div><i class="fab fa-${p}"></i> ${p}</div><i class="fas fa-arrow-right"></i></div>`; });
             let spotPreview = '';
-            if (currentUser.spotifyId) {
-                let sid = currentUser.spotifyId;
-                if (sid.includes('playlist/')) {
-                    let m = sid.match(/playlist\/([a-zA-Z0-9]+)/);
-                    if (m) sid = m[1];
-                }
-                spotPreview = `<iframe src="https://open.spotify.com/embed/playlist/${sid}" style="border-radius:20px;width:100%;height:132px;" frameborder="0"></iframe>`;
-            }
-            
-            let userUrl = `${window.location.origin}${window.location.pathname}?user=${currentUser.email}`;
-            
+            if (currentUser.spotifyId) { let sid = currentUser.spotifyId; if (sid.includes('playlist/')) { let m = sid.match(/playlist\/([a-zA-Z0-9]+)/); if (m) sid = m[1]; } spotPreview = `<iframe src="https://open.spotify.com/embed/playlist/${sid}" style="border-radius:20px;width:100%;height:132px;" frameborder="0"></iframe>`; }
+            let previewUrl = `preview.html?email=${currentUser.email}`;
+
             document.getElementById('mainContainer').innerHTML = `
                 <div class="settings-wrapper">
                     <div class="form-card">
                         <h2><i class="fas fa-sliders-h"></i> Edit Profil</h2>
-                        <div class="form-group">
-                            <label>📸 Foto Profil</label>
-                            <div style="display:flex;gap:16px;align-items:center;">
-                                <div class="preview-avatar" id="avatarTrigger" style="width:80px;height:80px;cursor:pointer;">${previewAvatar}</div>
-                                <input type="file" id="avatarFile" style="display:none" accept="image/*">
-                                <button id="clearAvatarBtn" class="btn-outline" style="padding:8px 16px;">Hapus foto</button>
-                            </div>
-                        </div>
+                        <div class="form-group"><label>📸 Foto</label><div style="display:flex;gap:16px;"><div class="preview-avatar" id="avatarTrigger" style="width:80px;height:80px;cursor:pointer;">${previewAvatar}</div><input type="file" id="avatarFile" style="display:none" accept="image/*"><button id="clearAvatarBtn" class="btn-outline">Hapus foto</button></div></div>
                         <div class="form-group"><label>Nama tampilan</label><input type="text" id="displayName" value="${escapeHtml(currentUser.displayName)}"></div>
                         <div class="form-group"><label>Bio (pisah koma)</label><textarea id="bio" rows="3">${escapeHtml(currentUser.bio)}</textarea></div>
                         <div class="section-title">🌐 Social Media</div>
                         ${['instagram', 'tiktok', 'youtube', 'github', 'whatsapp', 'discord'].map(p => `<div class="form-group"><label>${p}</label><input type="text" id="${p}Url" value="${escapeHtml(currentUser.links?.[p] || '')}"></div>`).join('')}
-                        <div class="section-title">🔗 Custom Link</div>
-                        <div id="customLinksWrap">${customLinksHtml}</div>
-                        <button id="addCustomLinkBtn" class="btn-outline" style="width:100%;"><i class="fas fa-plus-circle"></i> Tambah Link</button>
-                        <div class="section-title">🎵 Spotify Playlist ID</div>
-                        <div class="form-group"><input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId || '')}" placeholder="ID playlist atau URL"></div>
-                        <div class="section-title">🎨 Tema & Background</div>
-                        <div class="form-group"><select id="themeMode"><option value="light" ${currentUser.theme === 'light' ? 'selected' : ''}>Light Mode</option><option value="dark" ${currentUser.theme === 'dark' ? 'selected' : ''}>Dark Mode</option></select></div>
-                        <div class="form-group"><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage || '')}" placeholder="URL background (gambar)"></div>
-                        <button id="saveUserSettingsBtn" class="save-btn"><i class="fas fa-cloud-upload-alt"></i> Simpan ke Firebase</button>
-                        <div class="url-box" style="margin-top:20px; background:#00000033; border-radius:30px; padding:16px;">
-                            <i class="fas fa-link"></i> Link publik kamu:<br>
-                            <code style="display:block; word-break:break-all; background:#00000055; padding:8px; border-radius:16px; margin:10px 0;">${userUrl}</code>
-                            <button id="copyPublicLinkBtn" class="btn-outline" style="margin-top:5px;">Salin URL</button>
-                            <button id="openPublicPreviewBtn" class="btn-primary" style="background:#1DB954; margin-left:10px;">Lihat Preview</button>
+                        <div class="section-title">🔗 Custom Link</div><div id="customLinksWrap">${customLinksHtml}</div><button id="addCustomLinkBtn" class="btn-outline" style="width:100%;">+ Tambah Link</button>
+                        <div class="section-title">🎵 Spotify Playlist ID</div><div class="form-group"><input type="text" id="spotifyId" value="${escapeHtml(currentUser.spotifyId || '')}"></div>
+                        <div class="section-title">🎨 Tema & Background</div><div class="form-group"><select id="themeMode"><option value="light" ${currentUser.theme === 'light' ? 'selected' : ''}>Light</option><option value="dark" ${currentUser.theme === 'dark' ? 'selected' : ''}>Dark</option></select></div>
+                        <div class="form-group"><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage || '')}" placeholder="URL background"></div>
+                        <button id="saveUserSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan ke Firebase</button>
+                        <div style="margin-top:20px; background:#00000033; border-radius:30px; padding:16px; text-align:center;">
+                            <i class="fas fa-external-link-alt"></i> <strong>Preview Publik:</strong><br>
+                            <code style="display:block; word-break:break-all; background:#00000055; padding:8px; border-radius:16px; margin:10px 0;">${previewUrl}</code>
+                            <button id="copyPreviewUrlBtn" class="btn-outline" style="margin-top:5px;">Salin URL</button>
+                            <button id="openPreviewBtn" class="btn-primary" style="background:#1DB954; margin-left:10px;">Buka Preview</button>
                         </div>
                     </div>
-                    <div class="preview-card">
-                        <h3><i class="fas fa-eye"></i> Live Preview</h3>
-                        <div style="text-align:center;">
-                            <div class="preview-avatar">${previewAvatar}</div>
-                            <div class="preview-name">${escapeHtml(currentUser.displayName)}</div>
-                            <div class="preview-bio">${escapeHtml(bioArr[0] || '')}</div>
-                        </div>
-                        ${previewLinks}
-                        ${spotPreview}
-                    </div>
+                    <div class="preview-card"><h3><i class="fas fa-eye"></i> Live Preview</h3><div style="text-align:center;"><div class="preview-avatar">${previewAvatar}</div><div class="preview-name">${escapeHtml(currentUser.displayName)}</div><div class="preview-bio">${escapeHtml(bioArr[0] || '')}</div></div>${previewLinks}${spotPreview}</div>
                 </div>
             `;
-            
-            // Events untuk settings (sama seperti sebelumnya)
-            let trig = document.getElementById('avatarTrigger');
-            let fileInp = document.getElementById('avatarFile');
-            if (trig) trig.addEventListener('click', () => fileInp.click());
-            if (fileInp) {
-                fileInp.addEventListener('change', (e) => {
-                    let f = e.target.files[0];
-                    if (f) {
-                        let rd = new FileReader();
-                        rd.onload = async (ev) => {
-                            await updateUser(currentUser.id, { avatar: ev.target.result });
-                            showToast('Avatar diperbarui');
-                            renderUserSettings();
-                        };
-                        rd.readAsDataURL(f);
-                    }
-                });
-            }
-            
-            document.getElementById('clearAvatarBtn')?.addEventListener('click', async () => {
-                await updateUser(currentUser.id, { avatar: null });
-                showToast('Foto dihapus');
-                renderUserSettings();
+
+            document.getElementById('avatarTrigger')?.addEventListener('click', () => document.getElementById('avatarFile').click());
+            document.getElementById('avatarFile')?.addEventListener('change', (e) => {
+                let f = e.target.files[0];
+                if (f) { let rd = new FileReader(); rd.onload = async (ev) => { await updateUser(currentUser.id, { avatar: ev.target.result }); renderUserSettings(); }; rd.readAsDataURL(f); }
             });
-            
+            document.getElementById('clearAvatarBtn')?.addEventListener('click', async () => { await updateUser(currentUser.id, { avatar: null }); renderUserSettings(); });
             document.getElementById('saveUserSettingsBtn')?.addEventListener('click', async () => {
                 let customLinks = [];
-                document.querySelectorAll('[data-cname]').forEach(inp => {
-                    let idx = inp.dataset.cname;
-                    let urlInp = document.querySelector(`[data-curls="${idx}"]`);
-                    if (inp.value.trim() && urlInp?.value.trim()) {
-                        customLinks.push({ name: inp.value.trim(), url: urlInp.value.trim() });
-                    }
-                });
-                
+                document.querySelectorAll('[data-cname]').forEach(inp => { let idx = inp.dataset.cname; let urlInp = document.querySelector(`[data-curls="${idx}"]`); if (inp.value.trim() && urlInp?.value.trim()) customLinks.push({ name: inp.value.trim(), url: urlInp.value.trim() }); });
                 await updateUser(currentUser.id, {
                     displayName: document.getElementById('displayName').value,
                     bio: document.getElementById('bio').value,
@@ -578,173 +361,51 @@
                     theme: document.getElementById('themeMode').value,
                     bgImage: document.getElementById('bgImage').value
                 });
-                showToast('✅ Data tersimpan di Firebase!');
+                showToast('✅ Tersimpan!');
                 renderUserSettings();
             });
-            
-            document.getElementById('addCustomLinkBtn')?.addEventListener('click', async () => {
-                let newLinks = [...(currentUser.customLinks || []), { name: '', url: '' }];
-                await updateUser(currentUser.id, { customLinks: newLinks });
-                renderUserSettings();
-            });
-            
-            document.querySelectorAll('[data-removeCust]').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    let idx = parseInt(btn.dataset.removeCust);
-                    let arr = [...(currentUser.customLinks || [])];
-                    arr.splice(idx, 1);
-                    await updateUser(currentUser.id, { customLinks: arr });
-                    renderUserSettings();
-                });
-            });
-            
-            document.getElementById('copyPublicLinkBtn')?.addEventListener('click', () => {
-                navigator.clipboard.writeText(userUrl);
-                showToast('URL disalin');
-            });
-            document.getElementById('openPublicPreviewBtn')?.addEventListener('click', () => window.open(`?user=${currentUser.email}`, '_blank'));
+            document.getElementById('addCustomLinkBtn')?.addEventListener('click', async () => { await updateUser(currentUser.id, { customLinks: [...(currentUser.customLinks || []), { name: '', url: '' }] }); renderUserSettings(); });
+            document.querySelectorAll('[data-removeCust]').forEach(btn => btn.addEventListener('click', async () => { let idx = parseInt(btn.dataset.removeCust); let arr = [...(currentUser.customLinks || [])]; arr.splice(idx, 1); await updateUser(currentUser.id, { customLinks: arr }); renderUserSettings(); }));
+            document.getElementById('copyPreviewUrlBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(previewUrl); showToast('URL preview disalin'); });
+            document.getElementById('openPreviewBtn')?.addEventListener('click', () => window.open(previewUrl, '_blank'));
             
             let navDiv = document.getElementById('navLinks');
-            if (currentUser.isAdmin) {
-                navDiv.innerHTML = `<span class="badge-admin">Admin</span><button id="adminDashBtn" class="btn-outline"><i class="fas fa-tachometer-alt"></i> Dashboard</button><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
-                document.getElementById('adminDashBtn')?.addEventListener('click', () => renderAdminDashboard());
-            } else {
-                navDiv.innerHTML = `<span>👋 ${escapeHtml(currentUser.displayName)}</span><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
-            }
+            if (currentUser.isAdmin) navDiv.innerHTML = `<span class="badge-admin">Admin</span><button id="adminDashBtn" class="btn-outline"><i class="fas fa-tachometer-alt"></i> Dashboard</button><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
+            else navDiv.innerHTML = `<span>👋 ${escapeHtml(currentUser.displayName)}</span><button id="logoutUserBtn" class="btn-outline">Logout</button>`;
+            document.getElementById('adminDashBtn')?.addEventListener('click', () => renderAdminDashboard());
             document.getElementById('logoutUserBtn')?.addEventListener('click', logout);
         }
 
-        // ----------------------- ROUTER -----------------------
+        // ----------------------- RENDER WELCOME -----------------------
         async function renderApp() {
-            let urlEmail = new URLSearchParams(window.location.search).get('user');
-            
-            if (urlEmail && (!currentUser || currentUser.email !== urlEmail)) {
-                await renderPublicLinktree(urlEmail);
-                return;
-            }
-            
-            if (currentUser && currentUser.isAdmin && !window.location.search.includes('user')) {
-                await renderAdminDashboard();
-                return;
-            }
-            
-            if (currentUser) {
-                await renderUserSettings();
-                return;
-            }
-            
-            // Welcome / Landing
+            if (currentUser && currentUser.isAdmin) return renderAdminDashboard();
+            if (currentUser) return renderUserSettings();
             document.body.className = 'light-mode';
             document.getElementById('mainContainer').innerHTML = `
                 <div style="text-align:center;padding:70px 20px;">
                     <h1 style="font-size:52px;">LinkTree <span style="background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;background-clip:text;color:transparent;">Pro</span></h1>
-                    <p style="margin:20px 0; font-size:18px;">Buat halaman link pribadi, login via OTP email 📧</p>
-                    <div style="display:flex;gap:20px;justify-content:center; flex-wrap:wrap;">
-                        <button id="welcomeLoginBtn" class="btn-primary">Login</button>
-                        <button id="welcomeRegBtn" class="btn-outline">Daftar Gratis</button>
-                    </div>
-                    <div style="margin-top:60px; background:rgba(255,255,255,0.1); border-radius:32px; padding:25px; max-width:500px; margin-left:auto; margin-right:auto;">
-                        <p><i class="fas fa-database"></i> Data tersimpan di Firebase Cloud</p>
-                        <p><i class="fas fa-envelope"></i> Login menggunakan OTP melalui email</p>
-                        <p><i class="fas fa-link"></i> Setiap user punya halaman publik unik</p>
-                        <hr style="margin:15px 0; opacity:0.3;">
-                        <p style="font-size:12px;">⚠️ Jika email tidak masuk, cek folder SPAM atau gunakan kode yang muncul di alert</p>
-                    </div>
+                    <p style="margin:20px 0;">Buat halaman link pribadi, login via OTP email 📧</p>
+                    <div style="display:flex;gap:20px;justify-content:center;"><button id="welcomeLoginBtn" class="btn-primary">Login</button><button id="welcomeRegBtn" class="btn-outline">Daftar</button></div>
                 </div>
             `;
-            
-            document.getElementById('navLinks').innerHTML = `<button id="navLoginBtn" class="btn-primary">Login / Daftar</button>`;
+            document.getElementById('navLinks').innerHTML = `<button id="navLoginBtn" class="btn-primary">Login</button>`;
             document.getElementById('welcomeLoginBtn')?.addEventListener('click', () => openModal('login'));
             document.getElementById('welcomeRegBtn')?.addEventListener('click', () => openModal('register'));
             document.getElementById('navLoginBtn')?.addEventListener('click', () => openModal('login'));
         }
 
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUserId');
-            showToast('Berhasil logout');
-            renderApp();
-        }
+        function logout() { currentUser = null; localStorage.clear(); showToast('Logout'); renderApp(); }
+        function openModal(type) { document.getElementById(type === 'login' ? 'loginModal' : 'registerModal').classList.add('show'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); document.getElementById('otpSection').style.display = 'none'; document.getElementById('otpDemoBox').style.display = 'none'; }
 
-        function openModal(type) {
-            document.getElementById(type === 'login' ? 'loginModal' : 'registerModal').classList.add('show');
-        }
+        document.getElementById('sendOtpBtn')?.addEventListener('click', async () => { let email = document.getElementById('loginEmail').value; if (!email) return alert('Masukkan email'); let ok = await requestOtp(email); if (ok) document.getElementById('otpSection').style.display = 'block'; });
+        document.getElementById('verifyOtpBtn')?.addEventListener('click', async () => { await verifyOtpAndLogin(document.getElementById('otpCode').value); });
+        document.getElementById('doRegisterBtn')?.addEventListener('click', async () => { let email = document.getElementById('regEmail').value, name = document.getElementById('regDisplayName').value; if (!email) return; let res = await registerUser(email, name); if (res.success) { alert('✅ Daftar berhasil! Silakan login'); closeModals(); document.getElementById('loginEmail').value = email; openModal('login'); } else alert(res.error); });
+        document.getElementById('showRegisterBtn')?.addEventListener('click', (e) => { e.preventDefault(); closeModals(); openModal('register'); });
+        document.getElementById('showLoginFromRegBtn')?.addEventListener('click', (e) => { e.preventDefault(); closeModals(); openModal('login'); });
+        document.getElementById('homeLogo')?.addEventListener('click', () => { window.location.href = 'index.html'; });
 
-        function closeModals() {
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
-            // Reset OTP section saat modal ditutup
-            const otpSection = document.getElementById('otpSection');
-            const otpDemoBox = document.getElementById('otpDemoBox');
-            if (otpSection) otpSection.style.display = 'none';
-            if (otpDemoBox) otpDemoBox.style.display = 'none';
-            document.getElementById('otpCode').value = '';
-        }
-
-        // Event Listeners Modal
-        document.getElementById('sendOtpBtn')?.addEventListener('click', async () => {
-            let email = document.getElementById('loginEmail').value;
-            if (!email) return alert('Masukkan email');
-            let ok = await requestOtp(email);
-            if (ok) {
-                document.getElementById('otpSection').style.display = 'block';
-                showToast('Kode OTP telah dikirim (cek email atau alert)');
-            }
-        });
-        
-        document.getElementById('verifyOtpBtn')?.addEventListener('click', async () => {
-            let code = document.getElementById('otpCode').value;
-            await verifyOtpAndLogin(code);
-        });
-        
-        document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
-            let email = document.getElementById('regEmail').value;
-            let name = document.getElementById('regDisplayName').value;
-            if (!email) return alert('Email wajib diisi');
-            let res = await registerUser(email, name);
-            if (res.success) {
-                alert('✅ Pendaftaran berhasil! Silakan login dengan OTP');
-                closeModals();
-                document.getElementById('loginEmail').value = email;
-                openModal('login');
-            } else {
-                alert(res.error);
-            }
-        });
-        
-        document.getElementById('showRegisterBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            closeModals();
-            openModal('register');
-        });
-        
-        document.getElementById('showLoginFromRegBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            closeModals();
-            openModal('login');
-        });
-        
-        document.getElementById('homeLogo')?.addEventListener('click', () => {
-            window.history.pushState({}, '', '/');
-            renderApp();
-        });
-
-        // START
-        createAdminIfMissing().then(() => {
-            let saved = localStorage.getItem('currentUserId');
-            if (saved) {
-                getAllUsers().then(users => {
-                    let u = users.find(uu => uu.id === saved);
-                    if (u) {
-                        currentUser = u;
-                        renderApp();
-                    } else {
-                        renderApp();
-                    }
-                });
-            } else {
-                renderApp();
-            }
-        });
+        createAdminIfMissing().then(() => { let saved = localStorage.getItem('currentUserId'); if (saved) { getAllUsers().then(users => { let u = users.find(uu => uu.id === saved); if (u) { currentUser = u; renderApp(); } else renderApp(); }); } else renderApp(); });
     </script>
 </body>
 </html>
