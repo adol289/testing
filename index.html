@@ -59,7 +59,7 @@
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
-        .modal-card { background: #1A1E36; border-radius: 32px; max-width: 420px; width: 90%; padding: 32px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        .modal-card { background: #1A1E36; border-radius: 32px; max-width: 500px; width: 90%; padding: 32px; text-align: center; border: 1px solid rgba(255,255,255,0.2); max-height: 80vh; overflow-y: auto; }
         .modal-card input { width: 100%; padding: 12px; margin: 12px 0; border-radius: 50px; background: #0F1229; border: 1px solid #334; color: white; }
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937cc; backdrop-filter: blur(8px); padding: 12px 28px; border-radius: 60px; z-index: 1500; animation: fadeUp 2s ease; z-index: 2000; }
         @keyframes fadeUp { 0% { opacity: 0; bottom: 0; } 15% { opacity: 1; bottom: 30px; } 85% { opacity: 1; } 100% { opacity: 0; bottom: 60px; } }
@@ -85,7 +85,6 @@
         .loading-spinner { border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Template Marketplace */
         .template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
         .template-card { background: rgba(0,0,0,0.4); border-radius: 24px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
         .template-card:hover { transform: translateY(-5px); background: rgba(0,0,0,0.5); }
@@ -93,10 +92,12 @@
         .template-card img { width: 100%; border-radius: 16px; margin-bottom: 12px; background: #333; height: 120px; object-fit: cover; }
         .template-price { color: #f59e0b; font-weight: 700; margin-top: 8px; }
         .template-free { color: #1DB954; font-weight: 700; }
-        .buy-template-btn { background: #f59e0b; border: none; padding: 6px 12px; border-radius: 30px; color: white; cursor: pointer; margin-top: 8px; }
+        .buy-template-btn { background: #f59e0b; border: none; padding: 8px 16px; border-radius: 30px; color: white; cursor: pointer; margin-top: 8px; transition: 0.2s; }
+        .buy-template-btn:hover { background: #d97706; }
+        .buy-template-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        /* Custom CSS Editor */
         .css-editor { font-family: monospace; background: #0a0a0a; color: #00ff88; font-size: 12px; }
+        .whatsapp-link { display: inline-flex; align-items: center; gap: 8px; background: #25D366; padding: 10px 20px; border-radius: 40px; color: white; text-decoration: none; margin-top: 15px; font-weight: 600; }
     </style>
 </head>
 <body class="light-mode">
@@ -137,19 +138,39 @@
         </div>
     </div>
 
-    <!-- Modal Template Marketplace (Berbayar) -->
+    <!-- Modal Template Marketplace -->
     <div id="templateModal" class="modal">
-        <div class="modal-card" style="max-width: 500px;">
+        <div class="modal-card">
             <h2><i class="fas fa-store"></i> Template Marketplace</h2>
-            <p style="margin-bottom: 15px;">Pilih tema premium untuk halaman publikmu</p>
+            <p style="margin-bottom: 15px;">Pilih tema untuk halaman publikmu</p>
             <div id="templateList" class="template-grid"></div>
             <div id="templatePaymentSection" style="display:none; margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 20px;">
-                <p>💎 <strong>Template Premium</strong> seharga <span id="selectedTemplatePrice">0</span> credits</p>
+                <p>💎 <strong id="selectedTemplateName"></strong> seharga <strong id="selectedTemplatePrice">0</strong> credits</p>
                 <p style="font-size: 12px;">Saldo kamu: <span id="userBalance">0</span> credits</p>
-                <button id="confirmPurchaseBtn" class="btn-warning" style="margin-top: 10px;">Beli Sekarang</button>
-                <button id="cancelPurchaseBtn" class="btn-outline" style="margin-top: 10px;">Batal</button>
+                <div id="paymentActions">
+                    <button id="confirmPurchaseBtn" class="btn-warning" style="margin-top: 10px;">Beli Sekarang</button>
+                    <button id="cancelPurchaseBtn" class="btn-outline" style="margin-top: 10px;">Batal</button>
+                </div>
+            </div>
+            <div id="topupSection" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                <p><i class="fas fa-coins"></i> <strong>Top Up Credits</strong></p>
+                <p style="font-size: 12px;">Hubungi admin via WhatsApp untuk menambah saldo</p>
+                <a href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20mau%20top%20up%20credits%20LinkTree%20Pro" target="_blank" class="whatsapp-link"><i class="fab fa-whatsapp"></i> Top Up via WhatsApp</a>
             </div>
             <button id="closeTemplateModal" class="btn-outline" style="margin-top: 15px;">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Modal Top Up Credits -->
+    <div id="topupModal" class="modal">
+        <div class="modal-card">
+            <h2><i class="fas fa-coins"></i> Top Up Credits</h2>
+            <p>Saldo saat ini: <strong id="currentBalanceTopup">0</strong> credits</p>
+            <div style="margin: 20px 0;">
+                <p>Hubungi admin untuk menambah saldo:</p>
+                <a href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20mau%20top%20up%20credits%20LinkTree%20Pro" target="_blank" class="whatsapp-link"><i class="fab fa-whatsapp"></i> Chat Admin via WhatsApp</a>
+            </div>
+            <button id="closeTopupModal" class="btn-outline">Tutup</button>
         </div>
     </div>
 
@@ -180,6 +201,7 @@
         let currentUser = null;
         let pendingOtpEmail = null;
         let generatedOtp = null;
+        let selectedTemplateForPurchase = null;
 
         // Helper functions
         function showToast(msg) {
@@ -252,7 +274,8 @@
                         email: email,
                         isAdmin: false,
                         balance: 0,
-                        purchasedTemplates: [],
+                        purchasedTemplates: ['default'],
+                        activeTemplate: 'default',
                         customCSS: '',
                         displayName: displayName || username,
                         bio: '✨ Selamat datang di LinkTree Pro! ✨',
@@ -260,8 +283,6 @@
                         links: { instagram: '', tiktok: '', youtube: '', github: '', whatsapp: '', discord: '' },
                         customLinks: [],
                         musicUrl: '',
-                        musicPlaylist: [],
-                        currentMusicIndex: 0,
                         theme: 'light',
                         bgImage: '',
                         lastUpdated: new Date().toISOString(),
@@ -312,7 +333,7 @@
             if (!existing) {
                 await registerUser('admin', 'admin@xtxz.com', 'Xtxz Admin');
                 let admin = await getUserByUsername('admin');
-                if (admin) await updateUser(admin.id, { isAdmin: true, balance: 9999 });
+                if (admin) await updateUser(admin.id, { isAdmin: true, balance: 9999, purchasedTemplates: ['default', 'dark_neon', 'glassmorphism', 'retro_80s', 'minimal_white'] });
             }
         }
 
@@ -365,78 +386,24 @@
             return false;
         }
 
-        // Music embed with FULL DURATION playlist
-        let musicPlayer = null;
-        let currentMusicIndex = 0;
-        let musicPlaylistUrls = [];
+        // Templates Data
+        const templates = [
+            { id: 'default', name: 'Default', price: 0, isPremium: false, css: '', previewColor: '#667eea', description: 'Tema standar bawaan' },
+            { id: 'dark_neon', name: 'Dark Neon', price: 100, isPremium: true, css: `.preview-name { color: #00ff88; text-shadow: 0 0 10px #00ff88; } .preview-link { background: linear-gradient(90deg, #ff00cc, #3333ff); border: none; } .profile-card { background: rgba(0,0,0,0.7); }`, previewColor: '#ff00cc', description: 'Tema neon gelap yang keren' },
+            { id: 'glassmorphism', name: 'Glass Morphism', price: 150, isPremium: true, css: `.preview-link { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); } .profile-card { backdrop-filter: blur(30px); } .preview-link:hover { background: rgba(255,255,255,0.15); }`, previewColor: '#a855f7', description: 'Efek kaca modern' },
+            { id: 'retro_80s', name: 'Retro 80s', price: 200, isPremium: true, css: `.preview-name { font-family: monospace; color: #ff00ff; text-shadow: 3px 3px 0 #00ffff; } .preview-link { background: #ff00ff33; border-left: 5px solid #ffff00; } .profile-card { background: #1a0033; }`, previewColor: '#ff00ff', description: 'Nuansa retro 80-an' },
+            { id: 'minimal_white', name: 'Minimal White', price: 50, isPremium: true, css: `.preview-name { color: #000; } .preview-link { background: white; color: black; border: 1px solid #ddd; } .preview-link:hover { background: #f5f5f5; } body { background: #f5f5f5; } .profile-card { background: white; color: black; }`, previewColor: '#ffffff', description: 'Tema putih minimalis' }
+        ];
 
-        function initMusicPlayer(playlistUrls, startIndex = 0) {
-            if (musicPlayer) {
-                musicPlayer.pause();
-                musicPlayer = null;
-            }
-            musicPlaylistUrls = playlistUrls.filter(url => url && url.trim());
-            if (musicPlaylistUrls.length === 0) return null;
-            
-            currentMusicIndex = startIndex % musicPlaylistUrls.length;
-            const currentUrl = musicPlaylistUrls[currentMusicIndex];
-            
-            // Extract video ID for YouTube
-            let videoId = null;
-            if (currentUrl.includes('youtube.com/watch') || currentUrl.includes('youtu.be')) {
-                if (currentUrl.includes('youtu.be/')) videoId = currentUrl.split('youtu.be/')[1]?.split('?')[0];
-                else if (currentUrl.includes('watch?v=')) videoId = currentUrl.split('watch?v=')[1]?.split('&')[0];
-            }
-            
-            if (videoId) {
-                // Use YouTube iframe API for full duration playback
-                musicPlayer = new Audio();
-                musicPlayer.src = `https://www.youtube.com/watch?v=${videoId}`;
-                // Note: YouTube requires iframe API for full control, but Audio element works for YouTube? Actually no.
-                // Better approach: use YouTube iframe API
-                console.log("YouTube player initialized");
-            } else {
-                // For Spotify or other sources
-                musicPlayer = new Audio();
-                musicPlayer.src = currentUrl;
-            }
-            
-            musicPlayer.addEventListener('ended', () => {
-                // Move to next song
-                currentMusicIndex = (currentMusicIndex + 1) % musicPlaylistUrls.length;
-                playSongAtIndex(currentMusicIndex);
-            });
-            
-            return musicPlayer;
-        }
-        
-        function playSongAtIndex(index) {
-            if (!musicPlaylistUrls.length) return;
-            const url = musicPlaylistUrls[index];
-            // Re-init player with new song
-            if (musicPlayer) musicPlayer.pause();
-            musicPlayer = new Audio();
-            musicPlayer.src = url;
-            musicPlayer.play().catch(e => console.log("Auto-play blocked"));
-            musicPlayer.addEventListener('ended', () => {
-                currentMusicIndex = (currentMusicIndex + 1) % musicPlaylistUrls.length;
-                playSongAtIndex(currentMusicIndex);
-            });
-        }
-
-        function getMusicEmbedWithFullDuration(musicUrl) {
+        function getMusicEmbedFull(musicUrl) {
             if (!musicUrl) return '';
-            
-            // Extract video ID for YouTube
             let videoId = '';
             if (musicUrl.includes('youtu.be/')) videoId = musicUrl.split('youtu.be/')[1]?.split('?')[0];
             else if (musicUrl.includes('watch?v=')) videoId = musicUrl.split('watch?v=')[1]?.split('&')[0];
             
             if (videoId) {
-                // YouTube embed with playlist support for full duration
-                return `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0&enablejsapi=1" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                return `<iframe src="https://www.youtube.com/embed/${videoId}?enablejsapi=1" style="border-radius:20px;width:100%;height:200px;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             }
-            
             if (musicUrl.includes('spotify.com')) {
                 let spotifyId = musicUrl;
                 if (spotifyId.includes('playlist/')) {
@@ -445,7 +412,6 @@
                 }
                 return `<iframe src="https://open.spotify.com/embed/playlist/${spotifyId}" style="border-radius:20px;width:100%;height:152px;" frameborder="0" allow="encrypted-media"></iframe>`;
             }
-            
             return `<audio controls style="width:100%; border-radius:20px;" src="${musicUrl}"></audio>`;
         }
 
@@ -453,7 +419,6 @@
             return `${window.location.origin}/preview.html?user=${username}`;
         }
 
-        // Format last updated
         function formatLastUpdated(dateString) {
             if (!dateString) return 'Belum pernah update';
             const date = new Date(dateString);
@@ -469,7 +434,116 @@
             return `${diffDays} hari lalu`;
         }
 
-        // Render functions
+        // Template Marketplace Functions
+        function openTemplateMarketplace() {
+            const modal = document.getElementById('templateModal');
+            const templateList = document.getElementById('templateList');
+            const purchasedIds = currentUser.purchasedTemplates || ['default'];
+            
+            templateList.innerHTML = templates.map(t => `
+                <div class="template-card ${t.isPremium ? 'premium' : ''}" data-template-id="${t.id}" style="border-color: ${t.previewColor}55;">
+                    <div style="background: ${t.previewColor}; height: 100px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-palette" style="font-size: 40px; color: white;"></i>
+                    </div>
+                    <h4>${t.name}</h4>
+                    <p style="font-size: 11px; opacity: 0.7;">${t.description}</p>
+                    ${t.isPremium ? `<div class="template-price">💰 ${t.price} credits</div>` : '<div class="template-free">🎁 Gratis</div>'}
+                    ${purchasedIds.includes(t.id) ? '<span style="color:#1DB954;">✅ Owned</span>' : ''}
+                    <button class="buy-template-btn" data-id="${t.id}" data-price="${t.price}" data-name="${t.name}" data-css="${t.css.replace(/"/g, '&quot;')}" ${purchasedIds.includes(t.id) ? 'disabled' : ''}>
+                        ${purchasedIds.includes(t.id) ? 'Owned' : (t.isPremium ? 'Beli & Terapkan' : 'Pakai Gratis')}
+                    </button>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.buy-template-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const templateId = btn.dataset.id;
+                    const price = parseInt(btn.dataset.price);
+                    const templateName = btn.dataset.name;
+                    const templateCss = btn.dataset.css;
+                    const template = templates.find(t => t.id === templateId);
+                    
+                    if (price === 0) {
+                        // Apply free template
+                        applyAndSaveTemplate(template);
+                        showToast(`✅ Template ${template.name} diterapkan!`);
+                        closeTemplateModal();
+                    } else {
+                        // Show purchase UI
+                        selectedTemplateForPurchase = template;
+                        document.getElementById('selectedTemplateName').innerText = templateName;
+                        document.getElementById('selectedTemplatePrice').innerText = price;
+                        document.getElementById('userBalance').innerText = currentUser.balance || 0;
+                        document.getElementById('templatePaymentSection').style.display = 'block';
+                    }
+                });
+            });
+            
+            modal.classList.add('show');
+        }
+        
+        function applyAndSaveTemplate(template) {
+            // Apply CSS to live preview
+            const cssTextarea = document.getElementById('customCSS');
+            if (cssTextarea) {
+                cssTextarea.value = template.css;
+            }
+            // Also save to user data
+            updateUser(currentUser.id, { 
+                customCSS: template.css,
+                activeTemplate: template.id
+            }).then(() => {
+                currentUser.customCSS = template.css;
+                currentUser.activeTemplate = template.id;
+                showToast(`✅ Template ${template.name} diterapkan!`);
+                renderUserSettings(); // Refresh to show updated preview
+            });
+        }
+        
+        async function purchaseTemplate() {
+            if (!selectedTemplateForPurchase) return;
+            
+            if ((currentUser.balance || 0) < selectedTemplateForPurchase.price) {
+                showToast(`❌ Saldo tidak cukup! Butuh ${selectedTemplateForPurchase.price} credits.`);
+                document.getElementById('templatePaymentSection').style.display = 'none';
+                selectedTemplateForPurchase = null;
+                return;
+            }
+            
+            const newBalance = (currentUser.balance || 0) - selectedTemplateForPurchase.price;
+            const purchasedTemplates = [...(currentUser.purchasedTemplates || ['default']), selectedTemplateForPurchase.id];
+            
+            await updateUser(currentUser.id, {
+                balance: newBalance,
+                purchasedTemplates: purchasedTemplates
+            });
+            
+            showToast(`✅ Template ${selectedTemplateForPurchase.name} berhasil dibeli!`);
+            
+            // Apply the template immediately after purchase
+            applyAndSaveTemplate(selectedTemplateForPurchase);
+            
+            document.getElementById('templatePaymentSection').style.display = 'none';
+            selectedTemplateForPurchase = null;
+            
+            // Refresh user data
+            currentUser = await getUserByUsername(currentUser.username);
+            closeTemplateModal();
+        }
+        
+        function closeTemplateModal() {
+            document.getElementById('templateModal').classList.remove('show');
+            document.getElementById('templatePaymentSection').style.display = 'none';
+            selectedTemplateForPurchase = null;
+        }
+        
+        function openTopupModal() {
+            document.getElementById('topupModal').classList.add('show');
+            document.getElementById('currentBalanceTopup').innerText = currentUser.balance || 0;
+        }
+
+        // Render User Settings
         async function renderUserSettings() {
             if (!currentUser) return renderApp();
             
@@ -498,9 +572,13 @@
                 }
             });
             
-            let musicEmbed = getMusicEmbedWithFullDuration(currentUser.musicUrl);
+            let musicEmbed = getMusicEmbedFull(currentUser.musicUrl);
             let previewUrl = getPreviewUrl(currentUser.username);
             let lastUpdatedText = formatLastUpdated(currentUser.lastUpdated);
+            
+            // Apply active template CSS to preview
+            const activeTemplate = templates.find(t => t.id === currentUser.activeTemplate) || templates[0];
+            const previewCSS = currentUser.customCSS || activeTemplate.css || '';
             
             document.getElementById('mainContainer').innerHTML = `
                 <div class="settings-wrapper">
@@ -544,22 +622,27 @@
                             <small style="opacity:0.6;">Support YouTube video, playlist, Spotify playlist. Musik akan play full sampai habis.</small>
                         </div>
                         
-                        <div class="section-title"><i class="fas fa-palette"></i> Tema & Background</div>
-                        <div class="grid-2col">
-                            <div class="form-group"><label>Mode</label><select id="themeMode"><option value="light" ${currentUser.theme==='light'?'selected':''}>Light</option><option value="dark" ${currentUser.theme==='dark'?'selected':''}>Dark</option></select></div>
-                            <div class="form-group"><label>Background URL</label><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage||'')}" placeholder="https://example.com/bg.jpg"></div>
-                        </div>
-                        
-                        <div class="section-title"><i class="fas fa-code"></i> Custom CSS (Premium)</div>
+                        <div class="section-title"><i class="fas fa-code"></i> Custom CSS</div>
                         <div class="form-group">
-                            <textarea id="customCSS" rows="6" class="css-editor" style="font-family: monospace;" placeholder="/* Tulis CSS kustommu di sini */&#10;.preview-name { color: #ff0000; }&#10;.preview-link { border-radius: 10px; }">${escapeHtml(currentUser.customCSS||'')}</textarea>
+                            <textarea id="customCSS" rows="6" class="css-editor" style="font-family: monospace;" placeholder="/* Tulis CSS kustommu di sini */">${escapeHtml(currentUser.customCSS||'')}</textarea>
                             <small style="opacity:0.6;">CSS yang kamu tulis akan diterapkan di halaman publik preview.</small>
                         </div>
                         
                         <div class="section-title"><i class="fas fa-store"></i> Template Marketplace</div>
-                        <div class="form-group">
-                            <button id="openTemplateMarketBtn" class="btn-warning" style="width:100%;"><i class="fas fa-shopping-cart"></i> Beli Template Premium</button>
-                            <small style="opacity:0.6;">Saldo kamu: ${currentUser.balance || 0} credits</small>
+                        <div class="grid-2col">
+                            <div class="form-group">
+                                <button id="openTemplateMarketBtn" class="btn-warning" style="width:100%;"><i class="fas fa-shopping-cart"></i> Beli Template</button>
+                            </div>
+                            <div class="form-group">
+                                <button id="openTopupBtn" class="btn-outline" style="width:100%;"><i class="fas fa-coins"></i> Top Up Credits</button>
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; text-align: center;">Saldo kamu: <strong>${currentUser.balance || 0}</strong> credits | Aktif: ${activeTemplate.name}</p>
+                        
+                        <div class="section-title"><i class="fas fa-palette"></i> Tema & Background</div>
+                        <div class="grid-2col">
+                            <div class="form-group"><label>Mode</label><select id="themeMode"><option value="light" ${currentUser.theme==='light'?'selected':''}>Light</option><option value="dark" ${currentUser.theme==='dark'?'selected':''}>Dark</option></select></div>
+                            <div class="form-group"><label>Background URL</label><input type="text" id="bgImage" value="${escapeHtml(currentUser.bgImage||'')}" placeholder="https://example.com/bg.jpg"></div>
                         </div>
                         
                         <button id="saveSettingsBtn" class="save-btn"><i class="fas fa-save"></i> Simpan Perubahan</button>
@@ -582,12 +665,12 @@
                         </div>
                         ${previewLinks}
                         ${musicEmbed ? `<div style="margin-top:20px;">${musicEmbed}</div>` : ''}
-                        <style id="livePreviewCSS">${currentUser.customCSS || ''}</style>
+                        <style id="livePreviewCSS">${previewCSS}</style>
                     </div>
                 </div>
             `;
             
-            // Events
+            // Event bindings
             document.getElementById('avatarTrigger')?.addEventListener('click', () => document.getElementById('avatarFile').click());
             document.getElementById('avatarFile')?.addEventListener('change', e => {
                 let f = e.target.files[0];
@@ -650,11 +733,8 @@
                 showToast('Link publik disalin!');
             });
             document.getElementById('openPreviewBtn')?.addEventListener('click', () => window.open(previewUrl, '_blank'));
-            
-            // Template marketplace
-            document.getElementById('openTemplateMarketBtn')?.addEventListener('click', () => {
-                openTemplateMarketplace();
-            });
+            document.getElementById('openTemplateMarketBtn')?.addEventListener('click', () => openTemplateMarketplace());
+            document.getElementById('openTopupBtn')?.addEventListener('click', () => openTopupModal());
             
             let navDiv = document.getElementById('navLinks');
             if (currentUser.isAdmin) {
@@ -665,96 +745,8 @@
             }
             document.getElementById('logoutBtn')?.addEventListener('click', logout);
         }
-        
-        // Template Marketplace (Berbayar)
-        const templates = [
-            { id: 'default', name: 'Default', price: 0, isPremium: false, css: '', previewColor: '#667eea' },
-            { id: 'dark_neon', name: 'Dark Neon', price: 100, isPremium: true, css: `.preview-name { color: #00ff88; text-shadow: 0 0 10px #00ff88; } .preview-link { background: linear-gradient(90deg, #ff00cc, #3333ff); border: none; }`, previewColor: '#ff00cc' },
-            { id: 'glassmorphism', name: 'Glass Morphism', price: 150, isPremium: true, css: `.preview-link { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); } .profile-card { backdrop-filter: blur(30px); }`, previewColor: '#a855f7' },
-            { id: 'retro_80s', name: 'Retro 80s', price: 200, isPremium: true, css: `.preview-name { font-family: monospace; color: #ff00ff; text-shadow: 3px 3px 0 #00ffff; } .preview-link { background: #ff00ff33; border-left: 5px solid #ffff00; }`, previewColor: '#ff00ff' },
-            { id: 'minimal_white', name: 'Minimal White', price: 50, isPremium: true, css: `.preview-name { color: #000; } .preview-link { background: white; color: black; } body { background: #f5f5f5; }`, previewColor: '#ffffff' }
-        ];
-        
-        function openTemplateMarketplace() {
-            const modal = document.getElementById('templateModal');
-            const templateList = document.getElementById('templateList');
-            const purchasedIds = currentUser.purchasedTemplates || [];
-            
-            templateList.innerHTML = templates.map(t => `
-                <div class="template-card ${t.isPremium ? 'premium' : ''}" data-template-id="${t.id}" data-price="${t.price}" style="border-color: ${t.previewColor}55;">
-                    <div style="background: ${t.previewColor}; height: 100px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-palette" style="font-size: 40px; color: white;"></i>
-                    </div>
-                    <h4>${t.name}</h4>
-                    ${t.isPremium ? `<div class="template-price">💰 ${t.price} credits</div>` : '<div class="template-free">🎁 Gratis</div>'}
-                    ${purchasedIds.includes(t.id) ? '<span style="color:#1DB954;">✅ Owned</span>' : ''}
-                    <button class="buy-template-btn" data-id="${t.id}" data-price="${t.price}" ${purchasedIds.includes(t.id) ? 'disabled style="opacity:0.5;"' : ''}>${purchasedIds.includes(t.id) ? 'Owned' : (t.isPremium ? 'Beli' : 'Pakai Gratis')}</button>
-                </div>
-            `).join('');
-            
-            document.querySelectorAll('.buy-template-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const templateId = btn.dataset.id;
-                    const price = parseInt(btn.dataset.price);
-                    const template = templates.find(t => t.id === templateId);
-                    
-                    if (price === 0) {
-                        // Apply free template
-                        applyTemplate(template);
-                        closeTemplateModal();
-                        showToast(`✅ Template ${template.name} diterapkan!`);
-                    } else {
-                        // Show payment section
-                        document.getElementById('selectedTemplatePrice').innerText = price;
-                        document.getElementById('userBalance').innerText = currentUser.balance || 0;
-                        document.getElementById('templatePaymentSection').style.display = 'block';
-                        document.getElementById('confirmPurchaseBtn').onclick = () => purchaseTemplate(template);
-                    }
-                });
-            });
-            
-            modal.classList.add('show');
-        }
-        
-        async function purchaseTemplate(template) {
-            if ((currentUser.balance || 0) < template.price) {
-                showToast(`❌ Saldo tidak cukup! Butuh ${template.price} credits.`);
-                return;
-            }
-            
-            const newBalance = (currentUser.balance || 0) - template.price;
-            const purchasedTemplates = [...(currentUser.purchasedTemplates || []), template.id];
-            
-            await updateUser(currentUser.id, {
-                balance: newBalance,
-                purchasedTemplates: purchasedTemplates
-            });
-            
-            showToast(`✅ Template ${template.name} berhasil dibeli!`);
-            closeTemplateModal();
-            
-            // Refresh user data
-            currentUser = await getUserByUsername(currentUser.username);
-            renderUserSettings();
-        }
-        
-        function applyTemplate(template) {
-            if (template.css) {
-                document.getElementById('customCSS').value = template.css;
-            }
-        }
-        
-        function closeTemplateModal() {
-            document.getElementById('templateModal').classList.remove('show');
-            document.getElementById('templatePaymentSection').style.display = 'none';
-        }
-        
-        document.getElementById('closeTemplateModal')?.addEventListener('click', closeTemplateModal);
-        document.getElementById('cancelPurchaseBtn')?.addEventListener('click', () => {
-            document.getElementById('templatePaymentSection').style.display = 'none';
-        });
 
+        // Admin Dashboard
         async function renderAdminDashboard() {
             let allUsers = await getAllUsers();
             let normalUsers = allUsers.filter(u => !u.isAdmin);
@@ -813,6 +805,7 @@
             document.getElementById('logoutAdmin')?.addEventListener('click', logout);
         }
 
+        // Welcome Page
         async function renderApp() {
             let savedId = localStorage.getItem('currentUserId');
             if (savedId && !currentUser) {
@@ -899,6 +892,17 @@
         });
         document.getElementById('homeLogo')?.addEventListener('click', () => {
             window.location.href = 'index.html';
+        });
+        
+        // Modal close buttons
+        document.getElementById('closeTemplateModal')?.addEventListener('click', closeTemplateModal);
+        document.getElementById('closeTopupModal')?.addEventListener('click', () => {
+            document.getElementById('topupModal').classList.remove('show');
+        });
+        document.getElementById('confirmPurchaseBtn')?.addEventListener('click', purchaseTemplate);
+        document.getElementById('cancelPurchaseBtn')?.addEventListener('click', () => {
+            document.getElementById('templatePaymentSection').style.display = 'none';
+            selectedTemplateForPurchase = null;
         });
 
         createAdminIfMissing().then(() => {
