@@ -2,89 +2,798 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Login Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WarungKu - E-Commerce Makanan & Minuman</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* (SAMA SEPERTI SEBELUMNYA - CSS tidak berubah) */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #f0f4f8; min-height: 100vh; }
-        .navbar { background: linear-gradient(135deg, #667eea, #764ba2); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; color: white; flex-wrap: wrap; gap: 16px; }
-        .logo { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .user-info { display: flex; align-items: center; gap: 20px; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; }
-        .logout-btn { background: rgba(255,255,255,0.3); border: none; padding: 8px 20px; border-radius: 30px; color: white; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        .logout-btn:hover { background: white; color: #667eea; }
-        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 32px; }
-        .welcome-card { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 32px; padding: 40px; color: white; margin-bottom: 32px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px; }
-        .stat-card { background: white; border-radius: 24px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: transform 0.3s; }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #667eea20, #764ba220); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #667eea; }
-        .stat-info h3 { font-size: 28px; font-weight: 800; color: #1e293b; }
-        .stat-info p { color: #64748b; font-size: 14px; }
-        .main-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px; }
-        .card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .card h3 { margin-bottom: 20px; color: #1e293b; font-size: 20px; }
-        canvas { max-height: 300px; }
-        .activity-list { list-style: none; }
-        .activity-list li { padding: 12px 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
-        .activity-icon { width: 40px; height: 40px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .quick-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
-        .action-btn { flex: 1; padding: 16px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; cursor: pointer; transition: all 0.3s; text-align: center; }
-        .action-btn:hover { border-color: #667eea; background: #eef2ff; }
-        @media (max-width: 768px) { .dashboard-container { padding: 20px; } .main-content { grid-template-columns: 1fr; } .navbar { padding: 16px; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fb;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            flex-wrap: wrap;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 40px;
+            transition: all 0.3s;
+        }
+
+        .cart-icon:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 40px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 32px;
+            padding: 48px;
+            color: white;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 16px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* Categories */
+        .categories {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #64748b;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        /* Product Card */
+        .product-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.15);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: #ef4444;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .product-badge.stok-habis {
+            background: #64748b;
+        }
+
+        .product-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .product-category {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 24px;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .product-stock {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stock-low {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .buy-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+        }
+
+        .buy-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Cart Sidebar */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .cart-overlay.active {
+            right: 0;
+        }
+
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            background: white;
+            z-index: 1001;
+            transition: all 0.3s;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-sidebar.active {
+            right: 0;
+        }
+
+        .cart-header {
+            padding: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-header h3 {
+            font-size: 24px;
+        }
+
+        .close-cart {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .cart-item-info h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .cart-item-info p {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cart-item-actions button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cart-footer {
+            padding: 24px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #94a3b8;
+            padding: 40px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            z-index: 1100;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 30px; opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .hero { padding: 32px; }
+            .hero h1 { font-size: 28px; }
+            .products-grid { gap: 16px; }
+            .navbar { padding: 12px 20px; }
+            .user-info span { display: none; }
+        }
     </style>
 </head>
 <body>
 
 <div class="navbar">
     <div class="logo">
-        <i class="fas fa-shield-alt"></i>
-        <span>Login Page Dashboard</span>
+        <i class="fas fa-store"></i>
+        <span>WarungKu</span>
     </div>
-    <div class="user-info">
-        <i class="fas fa-user-circle"></i>
-        <span id="usernameDisplay">User</span>
-        <span id="emailDisplay" style="font-size: 13px; opacity: 0.8;"></span>
-        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    <div style="display: flex; gap: 16px; align-items: center;">
+        <div class="cart-icon" onclick="toggleCart()">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </div>
+        <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="usernameDisplay">User</span>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
     </div>
 </div>
 
-<div class="dashboard-container">
-    <div class="welcome-card">
-        <h1 id="welcomeMessage" style="font-size: 32px; margin-bottom: 8px;">Welcome back! 👋</h1>
-        <p>Selamat datang di dashboard premium.</p>
+<div class="container">
+    <div class="hero">
+        <h1>🍔 Selamat Datang di WarungKu</h1>
+        <p>Makanan & Minuman Segar • Harga Terjangkau • Stok Realtime</p>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3>1,234</h3><p>Total Users</p></div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-info"><h3>8,492</h3><p>Total Views</p></div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-trophy"></i></div><div class="stat-info"><h3>Gold Tier</h3><p>Premium Member</p></div></div>
+    <div class="categories">
+        <button class="category-btn active" onclick="filterProducts('all')">Semua</button>
+        <button class="category-btn" onclick="filterProducts('makanan')">🍚 Makanan</button>
+        <button class="category-btn" onclick="filterProducts('minuman')">🥤 Minuman</button>
+        <button class="category-btn" onclick="filterProducts('snack')">🍿 Snack</button>
     </div>
 
-    <div class="main-content">
-        <div class="card"><h3><i class="fas fa-chart-line"></i> Statistik Aktivitas</h3><canvas id="activityChart"></canvas></div>
-        <div class="card"><h3><i class="fas fa-history"></i> Aktivitas Terbaru</h3><ul class="activity-list"><li><div class="activity-icon"><i class="fas fa-sign-in-alt"></i></div><div><strong>Login</strong><br><small>Baru saja</small></div></li><li><div class="activity-icon"><i class="fas fa-user-plus"></i></div><div><strong>Akun Dibuat</strong><br><small>Hari ini</small></div></li></ul></div>
-    </div>
-
-    <div class="card"><h3><i class="fas fa-bolt"></i> Quick Actions</h3><div class="quick-actions"><div class="action-btn" onclick="showComingSoon()"><i class="fas fa-user-edit" style="font-size: 24px;"></i><p>Edit Profil</p></div><div class="action-btn" onclick="showComingSoon()"><i class="fas fa-cog"></i><p>Settings</p></div><div class="action-btn" onclick="showComingSoon()"><i class="fas fa-chart-simple"></i><p>Analytics</p></div></div></div>
+    <div class="products-grid" id="productsGrid"></div>
 </div>
+
+<!-- Cart Sidebar -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+        <h3><i class="fas fa-shopping-cart"></i> Keranjang Belanja</h3>
+        <button class="close-cart" onclick="toggleCart()">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+        <div class="empty-cart">Keranjang masih kosong</div>
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span>Total</span>
+            <span id="cartTotal">Rp 0</span>
+        </div>
+        <button class="checkout-btn" onclick="checkout()">Bayar Sekarang</button>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script>
+    // Data Produk dengan Stok Realtime
+    let products = [
+        // Makanan
+        { id: 1, name: "Nasi Goreng Special", category: "makanan", price: 25000, stock: 15, image: "🍳", badge: "Populer" },
+        { id: 2, name: "Mie Ayam Bakso", category: "makanan", price: 18000, stock: 12, image: "🍜", badge: "" },
+        { id: 3, name: "Ayam Geprek", category: "makanan", price: 20000, stock: 8, image: "🍗", badge: "Pedas" },
+        { id: 4, name: "Sate Padang", category: "makanan", price: 28000, stock: 5, image: "🍢", badge: "Best Seller" },
+        { id: 5, name: "Bakso Urat", category: "makanan", price: 22000, stock: 10, image: "🥣", badge: "" },
+        { id: 6, name: "Nasi Uduk", category: "makanan", price: 15000, stock: 20, image: "🍚", badge: "" },
+        
+        // Minuman
+        { id: 7, name: "Es Teh Manis", category: "minuman", price: 5000, stock: 50, image: "🧋", badge: "" },
+        { id: 8, name: "Es Jeruk", category: "minuman", price: 8000, stock: 35, image: "🍊", badge: "" },
+        { id: 9, name: "Es Kopi Susu", category: "minuman", price: 15000, stock: 20, image: "☕", badge: "Best Seller" },
+        { id: 10, name: "Jus Alpukat", category: "minuman", price: 12000, stock: 12, image: "🥑", badge: "" },
+        { id: 11, name: "Air Mineral", category: "minuman", price: 4000, stock: 100, image: "💧", badge: "" },
+        { id: 12, name: "Milkshake Coklat", category: "minuman", price: 18000, stock: 7, image: "🥤", badge: "Limited" },
+        
+        // Snack
+        { id: 13, name: "Pisang Goreng", category: "snack", price: 10000, stock: 18, image: "🍌", badge: "" },
+        { id: 14, name: "Kentang Goreng", category: "snack", price: 12000, stock: 25, image: "🍟", badge: "" },
+        { id: 15, name: "Roti Bakar", category: "snack", price: 13000, stock: 10, image: "🍞", badge: "" },
+        { id: 16, name: "Cireng Isi", category: "snack", price: 8000, stock: 30, image: "🥟", badge: "" }
+    ];
+
+    let cart = [];
+    let currentFilter = "all";
+    let currentUser = null;
+
+    // Load user session
     const session = localStorage.getItem('app_session');
-    if(!session) { window.location.href = 'login.html'; }
-    const userData = JSON.parse(session);
-    document.getElementById('usernameDisplay').innerText = userData.username;
-    document.getElementById('emailDisplay').innerText = userData.email;
-    const hour = new Date().getHours();
-    let greeting = hour < 12 ? 'Selamat Pagi' : (hour < 18 ? 'Selamat Siang' : 'Selamat Malam');
-    document.getElementById('welcomeMessage').innerHTML = `${greeting}, ${userData.username}! 👋`;
-    const ctx = document.getElementById('activityChart').getContext('2d');
-    new Chart(ctx, { type: 'line', data: { labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], datasets: [{ label: 'Aktivitas', data: [12, 19, 15, 17, 14, 24, 20], borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', tension: 0.4, fill: true }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
-    function logout() { localStorage.removeItem('app_session'); window.location.href = 'login.html'; }
-    function showComingSoon() { alert('⚡ Fitur ini akan segera hadir!'); }
+    if (session) {
+        currentUser = JSON.parse(session);
+        document.getElementById('usernameDisplay').innerText = currentUser.username;
+    }
+
+    // Save products to localStorage (realtime stock)
+    function saveProducts() {
+        localStorage.setItem('warung_products', JSON.stringify(products));
+    }
+
+    function loadProducts() {
+        const saved = localStorage.getItem('warung_products');
+        if (saved) {
+            products = JSON.parse(saved);
+        } else {
+            saveProducts();
+        }
+    }
+
+    loadProducts();
+
+    // Show toast notification
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.style.backgroundColor = isError ? '#ef4444' : '#10b981';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 2000);
+    }
+
+    // Update cart count display
+    function updateCartCount() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCount').innerText = totalItems;
+    }
+
+    // Update cart sidebar
+    function updateCartUI() {
+        const cartItemsDiv = document.getElementById('cartItems');
+        const cartTotalSpan = document.getElementById('cartTotal');
+        
+        if (cart.length === 0) {
+            cartItemsDiv.innerHTML = '<div class="empty-cart"><i class="fas fa-shopping-basket" style="font-size: 48px; margin-bottom: 16px;"></i><p>Keranjang masih kosong</p></div>';
+            cartTotalSpan.innerHTML = 'Rp 0';
+            updateCartCount();
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+        
+        cart.forEach(item => {
+            const product = products.find(p => p.id === item.id);
+            if (product) {
+                const itemTotal = product.price * item.quantity;
+                total += itemTotal;
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${product.name}</h4>
+                            <p>Rp ${product.price.toLocaleString('id-ID')} x ${item.quantity}</p>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button onclick="updateQuantity(${item.id}, -1)">-</button>
+                            <span style="min-width: 30px; text-align: center;">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.id}, 1)">+</button>
+                            <button onclick="removeFromCart(${item.id})" style="background: #fee2e2; color: #ef4444; border-color: #ef4444;">✕</button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        cartItemsDiv.innerHTML = html;
+        cartTotalSpan.innerHTML = `Rp ${total.toLocaleString('id-ID')}`;
+        updateCartCount();
+    }
+
+    // Update quantity in cart
+    function updateQuantity(productId, change) {
+        const index = cart.findIndex(item => item.id === productId);
+        if (index !== -1) {
+            const newQuantity = cart[index].quantity + change;
+            const product = products.find(p => p.id === productId);
+            
+            if (newQuantity <= 0) {
+                cart.splice(index, 1);
+                showToast(`${product.name} dihapus dari keranjang`);
+            } else if (newQuantity <= product.stock) {
+                cart[index].quantity = newQuantity;
+            } else {
+                showToast(`Stok ${product.name} hanya tersisa ${product.stock}`, true);
+            }
+            updateCartUI();
+        }
+    }
+
+    // Remove from cart
+    function removeFromCart(productId) {
+        const product = products.find(p => p.id === productId);
+        cart = cart.filter(item => item.id !== productId);
+        updateCartUI();
+        showToast(`${product.name} dihapus dari keranjang`);
+    }
+
+    // Add to cart function (dengan pengecekan stok)
+    function addToCart(productId) {
+        const product = products.find(p => p.id === productId);
+        
+        if (!product) {
+            showToast("Produk tidak ditemukan!", true);
+            return;
+        }
+        
+        if (product.stock <= 0) {
+            showToast(`Maaf, ${product.name} sedang habis!`, true);
+            return;
+        }
+        
+        const existingItem = cart.find(item => item.id === productId);
+        
+        if (existingItem) {
+            if (existingItem.quantity < product.stock) {
+                existingItem.quantity++;
+                showToast(`+1 ${product.name} ditambahkan ke keranjang`);
+            } else {
+                showToast(`Stok ${product.name} tidak mencukupi!`, true);
+                return;
+            }
+        } else {
+            cart.push({ id: productId, quantity: 1 });
+            showToast(`${product.name} ditambahkan ke keranjang`);
+        }
+        
+        updateCartUI();
+    }
+
+    // Process purchase (mengurangi stok realtime)
+    function checkout() {
+        if (cart.length === 0) {
+            showToast("Keranjang masih kosong!", true);
+            return;
+        }
+        
+        // Cek stok untuk semua item di keranjang
+        let outOfStock = [];
+        for (let item of cart) {
+            const product = products.find(p => p.id === item.id);
+            if (!product || product.stock < item.quantity) {
+                outOfStock.push(product?.name || "Unknown");
+            }
+        }
+        
+        if (outOfStock.length > 0) {
+            showToast(`Stok habis: ${outOfStock.join(", ")}`, true);
+            return;
+        }
+        
+        // Kurangi stok produk
+        for (let item of cart) {
+            const product = products.find(p => p.id === item.id);
+            if (product) {
+                product.stock -= item.quantity;
+            }
+        }
+        
+        // Simpan perubahan stok
+        saveProducts();
+        
+        // Hitung total pembayaran
+        let total = 0;
+        for (let item of cart) {
+            const product = products.find(p => p.id === item.id);
+            total += product.price * item.quantity;
+        }
+        
+        // Tampilkan struk
+        showToast(`✅ Pembayaran berhasil! Total: Rp ${total.toLocaleString('id-ID')}`, false);
+        
+        // Kosongkan keranjang
+        cart = [];
+        updateCartUI();
+        
+        // Tutup keranjang
+        toggleCart();
+        
+        // Refresh tampilan produk
+        renderProducts();
+        
+        // Notifikasi tambahan
+        setTimeout(() => {
+            showToast("Terima kasih telah berbelanja! 🎉");
+        }, 2000);
+    }
+
+    // Render products berdasarkan filter
+    function renderProducts() {
+        const grid = document.getElementById('productsGrid');
+        let filteredProducts = products;
+        
+        if (currentFilter !== 'all') {
+            filteredProducts = products.filter(p => p.category === currentFilter);
+        }
+        
+        if (filteredProducts.length === 0) {
+            grid.innerHTML = '<div style="text-align: center; padding: 60px; color: #94a3b8;">Tidak ada produk dalam kategori ini</div>';
+            return;
+        }
+        
+        grid.innerHTML = filteredProducts.map(product => `
+            <div class="product-card">
+                ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
+                ${product.stock === 0 ? `<div class="product-badge stok-habis">Stok Habis</div>` : ''}
+                <div class="product-image">
+                    ${product.image}
+                </div>
+                <div class="product-info">
+                    <div class="product-title">${product.name}</div>
+                    <div class="product-category">
+                        ${product.category === 'makanan' ? '🍚 Makanan' : product.category === 'minuman' ? '🥤 Minuman' : '🍿 Snack'}
+                    </div>
+                    <div class="product-price">Rp ${product.price.toLocaleString('id-ID')}</div>
+                    <div class="product-stock">
+                        <i class="fas fa-box"></i>
+                        Stok: <span class="${product.stock <= 5 ? 'stock-low' : ''}">${product.stock}</span>
+                        ${product.stock <= 5 && product.stock > 0 ? '⚠️ Sisa sedikit!' : ''}
+                    </div>
+                    <button class="buy-btn" onclick="addToCart(${product.id})" ${product.stock === 0 ? 'disabled' : ''}>
+                        ${product.stock === 0 ? 'Stok Habis' : '🛒 Beli Sekarang'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Filter products
+    function filterProducts(category) {
+        currentFilter = category;
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        renderProducts();
+    }
+
+    // Toggle cart sidebar
+    function toggleCart() {
+        const overlay = document.getElementById('cartOverlay');
+        const sidebar = document.getElementById('cartSidebar');
+        overlay.classList.toggle('active');
+        sidebar.classList.toggle('active');
+    }
+
+    // Logout
+    function logout() {
+        localStorage.removeItem('app_session');
+        window.location.href = 'login.html';
+    }
+
+    // Initial render
+    renderProducts();
+    updateCartUI();
+
+    // Expose functions to window
+    window.addToCart = addToCart;
+    window.updateQuantity = updateQuantity;
+    window.removeFromCart = removeFromCart;
+    window.checkout = checkout;
+    window.toggleCart = toggleCart;
+    window.filterProducts = filterProducts;
+    window.logout = logout;
 </script>
 </body>
 </html>
