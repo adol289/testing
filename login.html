@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuthVerse | Login & Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bubble {
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .glass-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 40px 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo-icon i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .logo h2 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 60px;
+            margin-bottom: 32px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #64748b;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .form {
+            display: none;
+            animation: slideUp 0.4s ease;
+        }
+
+        .form.active-form {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102,126,234,0.4);
+        }
+
+        .forgot-link {
+            text-align: right;
+            margin-top: 12px;
+        }
+
+        .forgot-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .divider {
+            text-align: center;
+            position: relative;
+            margin: 24px 0;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 16px;
+            position: relative;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert.success { background: #dcfce7; color: #166534; border-left: 4px solid #22c55e; }
+        .alert.error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+        .alert.info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 400px;
+            width: 90%;
+            padding: 32px;
+            border-radius: 32px;
+            text-align: center;
+        }
+
+        .otp-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .otp-inputs input {
+            width: 55px;
+            height: 65px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+        }
+
+        .close-modal {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        @media (max-width: 480px) {
+            .glass-card { padding: 32px 24px; }
+            .otp-inputs input { width: 45px; height: 55px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="bubbles"></div>
+
+<div class="container">
+    <div class="glass-card">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+            <h2>AuthVerse</h2>
+            <p>Secure Access • Premium Experience</p>
+        </div>
+
+        <div class="toggle-buttons">
+            <button class="toggle-btn active" onclick="switchForm('login')">Login</button>
+            <button class="toggle-btn" onclick="switchForm('register')">Register</button>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm" class="form active-form">
+            <form id="login">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword')"></i>
+                </div>
+                <div class="forgot-link"><a href="#" onclick="openResetModal()">Forgot Password?</a></div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+            <div class="divider"><span>Or</span></div>
+            <button class="google-btn" onclick="googleAuth()"><i class="fab fa-google"></i> Continue with Google</button>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerForm" class="form">
+            <form id="register">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="regUsername" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="regEmail" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="regPassword" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i>
+                </div>
+                <button type="submit" class="submit-btn">Create Account</button>
+            </form>
+            <div class="divider"><span>Or</span></div>
+            <button class="google-btn" onclick="googleAuth()"><i class="fab fa-google"></i> Sign up with Google</button>
+        </div>
+    </div>
+</div>
+
+<!-- OTP MODAL -->
+<div id="otpModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeOTPModal()">&times;</span>
+        <i class="fas fa-envelope-open-text" style="font-size: 48px; color: #667eea; margin: 16px 0;"></i>
+        <h3>Verify Your Email</h3>
+        <p style="color: #64748b; margin: 12px 0;">We've sent a 6-digit code to <strong id="otpEmailDisplay"></strong></p>
+        <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 0)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 1)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 2)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 3)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 4)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 5)">
+        </div>
+        <button class="submit-btn" onclick="verifyOTP()">Verify & Continue</button>
+        <p style="margin-top: 16px; font-size: 12px;">
+            Didn't receive code? <a href="#" onclick="resendOTP()" style="color:#667eea;">Resend</a>
+        </p>
+    </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div id="resetModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeResetModal()">&times;</span>
+        <h3>Reset Password</h3>
+        <div class="input-group" style="margin-top: 20px;">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="resetEmail" placeholder="Enter your email">
+        </div>
+        <button class="submit-btn" onclick="sendResetLink()">Send Reset Link</button>
+    </div>
+</div>
+
+<script>
+    // Generate bubbles
+    for(let i = 0; i < 30; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        const size = Math.random() * 100 + 20;
+        bubble.style.width = size + 'px';
+        bubble.style.height = size + 'px';
+        bubble.style.left = Math.random() * 100 + '%';
+        bubble.style.bottom = '-' + (Math.random() * 100) + 'px';
+        bubble.style.animationDuration = Math.random() * 10 + 10 + 's';
+        document.getElementById('bubbles').appendChild(bubble);
+    }
+
+    let users = JSON.parse(localStorage.getItem('authverse_users')) || [];
+    let pendingUser = null;
+    let generatedOTP = null;
+
+    function showAlert(message, type) {
+        const alert = document.getElementById('alert');
+        alert.className = `alert ${type}`;
+        alert.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        alert.style.display = 'block';
+        setTimeout(() => alert.style.display = 'none', 3000);
+    }
+
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        const icon = input.nextElementSibling;
+        if(input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function switchForm(form) {
+        document.getElementById('loginForm').classList.toggle('active-form', form === 'login');
+        document.getElementById('registerForm').classList.toggle('active-form', form === 'register');
+        document.querySelectorAll('.toggle-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', (form === 'login' && i === 0) || (form === 'register' && i === 1));
+        });
+        document.getElementById('alert').style.display = 'none';
+    }
+
+    // Generate OTP (simulasi 6 digit)
+    function generateOTP() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    function sendOTP(email) {
+        generatedOTP = generateOTP();
+        console.log(`[DEMO OTP] Untuk ${email}: ${generatedOTP}`);
+        showAlert(`OTP Demo: ${generatedOTP} (cek console)`, 'info');
+        return true;
+    }
+
+    function openOTPModal(email) {
+        document.getElementById('otpEmailDisplay').innerText = email;
+        document.getElementById('otpModal').style.display = 'flex';
+        document.querySelectorAll('.otp-digit').forEach((input, idx) => {
+            input.value = '';
+            if(idx === 0) input.focus();
+        });
+    }
+
+    function closeOTPModal() {
+        document.getElementById('otpModal').style.display = 'none';
+        pendingUser = null;
+        generatedOTP = null;
+    }
+
+    function moveToNext(input, index) {
+        if(input.value.length === 1 && index < 5) {
+            document.querySelectorAll('.otp-digit')[index + 1].focus();
+        }
+    }
+
+    function getOTPValue() {
+        let otp = '';
+        document.querySelectorAll('.otp-digit').forEach(input => otp += input.value);
+        return otp;
+    }
+
+    function verifyOTP() {
+        const enteredOTP = getOTPValue();
+        if(enteredOTP.length !== 6) {
+            showAlert('Please enter complete 6-digit OTP', 'error');
+            return;
+        }
+        if(enteredOTP === generatedOTP) {
+            showAlert('Email verified successfully!', 'success');
+            users.push(pendingUser);
+            localStorage.setItem('authverse_users', JSON.stringify(users));
+            closeOTPModal();
+            showAlert('Registration complete! Please login.', 'success');
+            switchForm('login');
+            pendingUser = null;
+        } else {
+            showAlert('Invalid OTP code!', 'error');
+        }
+    }
+
+    function resendOTP() {
+        if(pendingUser) {
+            sendOTP(pendingUser.email);
+            showAlert('New OTP sent!', 'success');
+        }
+    }
+
+    // REGISTER
+    document.getElementById('register').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+
+        if(username.length < 3) return showAlert('Username minimal 3 karakter', 'error');
+        if(password.length < 6) return showAlert('Password minimal 6 karakter', 'error');
+        if(users.find(u => u.email === email)) return showAlert('Email sudah terdaftar!', 'error');
+
+        pendingUser = { id: Date.now(), username, email, password: btoa(password), verified: false, createdAt: new Date().toISOString() };
+        if(sendOTP(email)) openOTPModal(email);
+    });
+
+    // LOGIN
+    document.getElementById('login').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const user = users.find(u => u.email === email && atob(u.password) === password);
+        if(user) {
+            localStorage.setItem('authverse_session', JSON.stringify({ id: user.id, username: user.username, email: user.email }));
+            showAlert(`Welcome ${user.username}! Redirecting...`, 'success');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+        } else {
+            showAlert('Invalid email or password!', 'error');
+        }
+    });
+
+    // GOOGLE AUTH
+    function googleAuth() {
+        const googleEmail = `user${Math.floor(Math.random() * 10000)}@gmail.com`;
+        const googleUsername = `google_${Math.floor(Math.random() * 10000)}`;
+        let existing = users.find(u => u.email === googleEmail);
+        if(!existing) {
+            const newUser = { id: Date.now(), username: googleUsername, email: googleEmail, password: btoa('google_' + Date.now()), provider: 'google', verified: true };
+            users.push(newUser);
+            localStorage.setItem('authverse_users', JSON.stringify(users));
+            localStorage.setItem('authverse_session', JSON.stringify({ id: newUser.id, username: newUser.username, email: newUser.email }));
+        } else {
+            localStorage.setItem('authverse_session', JSON.stringify({ id: existing.id, username: existing.username, email: existing.email }));
+        }
+        showAlert('Google login successful! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+    }
+
+    // RESET PASSWORD
+    function openResetModal() { document.getElementById('resetModal').style.display = 'flex'; }
+    function closeResetModal() { document.getElementById('resetModal').style.display = 'none'; }
+    function sendResetLink() {
+        const email = document.getElementById('resetEmail').value.trim();
+        const user = users.find(u => u.email === email);
+        if(user) {
+            const newPass = Math.random().toString(36).slice(-8);
+            user.password = btoa(newPass);
+            localStorage.setItem('authverse_users', JSON.stringify(users));
+            showAlert(`Password reset! New password: ${newPass}`, 'success');
+            closeResetModal();
+        } else {
+            showAlert('Email not found!', 'error');
+        }
+    }
+
+    window.onclick = function(e) {
+        if(e.target.classList.contains('modal')) e.target.style.display = 'none';
+    }
+</script>
+</body>
+  </html>
