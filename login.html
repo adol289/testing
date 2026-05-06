@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>LinkTree XTXZ | Login</title>
+    <title>Login Page | Premium Auth</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -12,16 +12,16 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Konfigurasi Firebase MILIK TUAN PUTRA
+        // Konfigurasi Firebase BARU MILIK TUAN PUTRA
         const firebaseConfig = {
-            apiKey: "AIzaSyD10-8FaZa_gO_2-QBs0HLvpqWEIjC30oE",
-            authDomain: "linktree-xtxz.firebaseapp.com",
-            databaseURL: "https://linktree-xtxz-default-rtdb.firebaseio.com",
-            projectId: "linktree-xtxz",
-            storageBucket: "linktree-xtxz.firebasestorage.app",
-            messagingSenderId: "551602488147",
-            appId: "1:551602488147:web:b8b0105b9b5ef90188d7a6",
-            measurementId: "G-YPD0JGNEMB"
+            apiKey: "AIzaSyAbTdGLZaXvyLFAzGlzPpHi8IGL1SnPCNI",
+            authDomain: "login-page-b2ab9.firebaseapp.com",
+            databaseURL: "https://login-page-b2ab9-default-rtdb.firebaseio.com",
+            projectId: "login-page-b2ab9",
+            storageBucket: "login-page-b2ab9.firebasestorage.app",
+            messagingSenderId: "136262198916",
+            appId: "1:136262198916:web:82ee7cd9ba575d0deb84d1",
+            measurementId: "G-84VL5MFC0N"
         };
 
         // Initialize Firebase
@@ -37,7 +37,7 @@
         window.signInWithPopup = signInWithPopup;
         window.googleProvider = googleProvider;
         
-        console.log("✅ Firebase Connected - Project: linktree-xtxz");
+        console.log("✅ Firebase Connected - Project: login-page-b2ab9");
     </script>
 
     <style>
@@ -59,7 +59,7 @@
             position: relative;
         }
 
-        /* Background Orbs - Stabil */
+        /* Background Orbs - Stabil, tidak goyang */
         .orb {
             position: fixed;
             border-radius: 50%;
@@ -403,9 +403,9 @@
     <div class="glass-card">
         <div class="logo">
             <div class="logo-icon">
-                <i class="fas fa-link"></i>
+                <i class="fas fa-shield-alt"></i>
             </div>
-            <h2>LinkTree XTXZ</h2>
+            <h2>Login Page</h2>
             <p>Secure • Firebase Auth • Premium</p>
         </div>
 
@@ -489,7 +489,8 @@
     let signInWithPopup = window.signInWithPopup;
     let googleProvider = window.googleProvider;
 
-    console.log("🚀 Firebase siap digunakan! Project: linktree-xtxz");
+    console.log("🚀 Firebase siap digunakan! Project: login-page-b2ab9");
+    console.log("⚠️ PASTIKAN Authentication (Email/Password & Google) sudah diaktifkan di Firebase Console!");
 
     function showAlert(message, type) {
         const alertDiv = document.getElementById('alert');
@@ -580,7 +581,7 @@
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
-            localStorage.setItem('linktree_username', username);
+            localStorage.setItem('app_username', username);
             
             showAlert('Registrasi berhasil! Silakan login.', 'success');
             
@@ -596,11 +597,14 @@
             } else if (error.code === 'auth/invalid-email') {
                 errorMessage = 'Email tidak valid!';
             } else if (error.code === 'auth/weak-password') {
-                errorMessage = 'Password terlalu lemah!';
+                errorMessage = 'Password terlalu lemah! (min 6 karakter)';
+            } else if (error.code === 'auth/configuration-not-found') {
+                errorMessage = '⚠️ Authentication belum diaktifkan di Firebase Console! Buka Firebase → Authentication → Enable Email/Password';
             } else {
                 errorMessage += error.message;
             }
             showAlert(errorMessage, 'error');
+            console.error('Firebase Error:', error);
         } finally {
             setLoading('registerBtn', false);
         }
@@ -625,8 +629,8 @@
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
-            const savedUsername = localStorage.getItem('linktree_username') || user.email.split('@')[0];
-            localStorage.setItem('linktree_session', JSON.stringify({
+            const savedUsername = localStorage.getItem('app_username') || user.email.split('@')[0];
+            localStorage.setItem('app_session', JSON.stringify({
                 uid: user.uid,
                 email: user.email,
                 username: savedUsername,
@@ -648,6 +652,8 @@
                 errorMessage = 'Email tidak valid!';
             } else if (error.code === 'auth/too-many-requests') {
                 errorMessage = 'Terlalu banyak percobaan. Coba lagi nanti.';
+            } else if (error.code === 'auth/configuration-not-found') {
+                errorMessage = '⚠️ Authentication belum diaktifkan di Firebase Console!';
             } else {
                 errorMessage += error.message;
             }
@@ -665,8 +671,8 @@
             const user = result.user;
             const googleUsername = user.displayName || user.email.split('@')[0];
             
-            localStorage.setItem('linktree_username', googleUsername);
-            localStorage.setItem('linktree_session', JSON.stringify({
+            localStorage.setItem('app_username', googleUsername);
+            localStorage.setItem('app_session', JSON.stringify({
                 uid: user.uid,
                 email: user.email,
                 username: googleUsername,
@@ -680,7 +686,13 @@
                 window.location.href = 'index.html';
             }, 1500);
         } catch (error) {
-            showAlert('Google login gagal: ' + error.message, 'error');
+            let errorMessage = 'Google login gagal: ';
+            if (error.code === 'auth/configuration-not-found') {
+                errorMessage += 'Google Sign-In belum diaktifkan di Firebase Console!';
+            } else {
+                errorMessage += error.message;
+            }
+            showAlert(errorMessage, 'error');
         } finally {
             setLoading('loginBtn', false);
         }
@@ -715,6 +727,8 @@
                 errorMessage = 'Email tidak terdaftar!';
             } else if (error.code === 'auth/invalid-email') {
                 errorMessage = 'Email tidak valid!';
+            } else if (error.code === 'auth/configuration-not-found') {
+                errorMessage = '⚠️ Authentication belum diaktifkan di Firebase Console!';
             } else {
                 errorMessage = error.message;
             }
@@ -732,10 +746,10 @@
     }
 
     // Cek session
-    const existingSession = localStorage.getItem('linktree_session');
+    const existingSession = localStorage.getItem('app_session');
     if (existingSession && auth.currentUser) {
         window.location.href = 'index.html';
     }
 </script>
 </body>
-</html>
+</html> 
