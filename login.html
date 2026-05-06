@@ -11,8 +11,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase BARU MILIK TUAN PUTRA
+        // Konfigurasi Firebase MILIK TUAN PUTRA
         const firebaseConfig = {
             apiKey: "AIzaSyAbTdGLZaXvyLFAzGlzPpHi8IGL1SnPCNI",
             authDomain: "login-page-b2ab9.firebaseapp.com",
@@ -27,39 +28,36 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const database = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // Export untuk digunakan di inline script
         window.auth = auth;
+        window.database = database;
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.sendPasswordResetEmail = sendPasswordResetEmail;
         window.signInWithPopup = signInWithPopup;
         window.googleProvider = googleProvider;
+        window.ref = ref;
+        window.set = set;
+        window.get = get;
+        window.child = child;
         
         console.log("✅ Firebase Connected - Project: login-page-b2ab9");
     </script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-attachment: fixed;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             position: relative;
         }
-
-        /* Background Orbs - Stabil, tidak goyang */
         .orb {
             position: fixed;
             border-radius: 50%;
@@ -68,54 +66,19 @@
             pointer-events: none;
             z-index: 0;
         }
-
-        .orb-1 {
-            width: 300px;
-            height: 300px;
-            background: #667eea;
-            top: -100px;
-            left: -100px;
-        }
-
-        .orb-2 {
-            width: 400px;
-            height: 400px;
-            background: #764ba2;
-            bottom: -150px;
-            right: -150px;
-        }
-
-        .orb-3 {
-            width: 200px;
-            height: 200px;
-            background: #f093fb;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-            z-index: 10;
-        }
-
+        .orb-1 { width: 300px; height: 300px; background: #667eea; top: -100px; left: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: #764ba2; bottom: -150px; right: -150px; }
+        .orb-3 { width: 200px; height: 200px; background: #f093fb; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .container { width: 100%; max-width: 480px; position: relative; z-index: 10; }
         .glass-card {
             background: rgba(255, 255, 255, 0.98);
             border-radius: 40px;
             padding: 40px 32px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
         }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
+        .logo { text-align: center; margin-bottom: 28px; }
         .logo-icon {
-            width: 65px;
-            height: 65px;
+            width: 65px; height: 65px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 20px;
             display: inline-flex;
@@ -123,27 +86,9 @@
             justify-content: center;
             margin-bottom: 16px;
         }
-
-        .logo-icon i {
-            font-size: 32px;
-            color: white;
-        }
-
-        .logo h2 {
-            font-size: 26px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo p {
-            color: #64748b;
-            font-size: 13px;
-            margin-top: 6px;
-        }
-
+        .logo-icon i { font-size: 32px; color: white; }
+        .logo h2 { font-size: 26px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { color: #64748b; font-size: 13px; margin-top: 6px; }
         .toggle-buttons {
             display: flex;
             gap: 12px;
@@ -152,7 +97,6 @@
             border-radius: 60px;
             margin-bottom: 28px;
         }
-
         .toggle-btn {
             flex: 1;
             padding: 12px;
@@ -162,29 +106,16 @@
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s;
             color: #64748b;
         }
-
         .toggle-btn.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
         }
-
-        .form {
-            display: none;
-        }
-
-        .form.active-form {
-            display: block;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-            position: relative;
-        }
-
+        .form { display: none; }
+        .form.active-form { display: block; }
+        .input-group { margin-bottom: 18px; position: relative; }
         .input-group i {
             position: absolute;
             left: 16px;
@@ -194,7 +125,6 @@
             font-size: 18px;
             pointer-events: none;
         }
-
         .input-group input {
             width: 100%;
             padding: 15px 16px 15px 48px;
@@ -205,13 +135,11 @@
             transition: all 0.2s;
             background: white;
         }
-
         .input-group input:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
-
         .toggle-password {
             position: absolute;
             right: 16px;
@@ -223,7 +151,6 @@
             background: white;
             padding-left: 4px;
         }
-
         .submit-btn {
             width: 100%;
             padding: 15px;
@@ -237,30 +164,10 @@
             transition: all 0.2s;
             margin-top: 8px;
         }
-
-        .submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px -5px rgba(102, 126, 234, 0.4);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .forgot-link {
-            text-align: right;
-            margin-top: 10px;
-        }
-
-        .forgot-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -5px rgba(102,126,234,0.4); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .forgot-link { text-align: right; margin-top: 10px; }
+        .forgot-link a { color: #667eea; text-decoration: none; font-size: 12px; font-weight: 500; }
         .google-btn {
             width: 100%;
             padding: 13px;
@@ -275,38 +182,11 @@
             justify-content: center;
             gap: 12px;
             margin: 20px 0 0 0;
-            transition: all 0.2s;
         }
-
-        .google-btn:hover {
-            border-color: #667eea;
-            background: #f8fafc;
-        }
-
-        .divider {
-            text-align: center;
-            position: relative;
-            margin: 22px 0;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            width: 100%;
-            height: 1px;
-            background: #e2e8f0;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 16px;
-            position: relative;
-            color: #94a3b8;
-            font-size: 12px;
-        }
-
+        .google-btn:hover { border-color: #667eea; background: #f8fafc; }
+        .divider { text-align: center; position: relative; margin: 22px 0; }
+        .divider::before { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: #e2e8f0; }
+        .divider span { background: white; padding: 0 16px; position: relative; color: #94a3b8; font-size: 12px; }
         .alert {
             padding: 12px 16px;
             border-radius: 20px;
@@ -315,25 +195,9 @@
             display: none;
             font-weight: 500;
         }
-
-        .alert.success {
-            background: #dcfce7;
-            color: #166534;
-            border-left: 4px solid #22c55e;
-        }
-
-        .alert.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-
-        .alert.info {
-            background: #dbeafe;
-            color: #1e40af;
-            border-left: 4px solid #3b82f6;
-        }
-
+        .alert.success { background: #dcfce7; color: #166534; border-left: 4px solid #22c55e; }
+        .alert.error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+        .alert.info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
         .modal {
             display: none;
             position: fixed;
@@ -341,13 +205,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0,0,0,0.5);
             backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
-
         .modal-content {
             background: white;
             max-width: 380px;
@@ -357,16 +220,7 @@
             text-align: center;
             position: relative;
         }
-
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            cursor: pointer;
-            font-size: 22px;
-            color: #94a3b8;
-        }
-
+        .close-modal { position: absolute; right: 20px; top: 20px; cursor: pointer; font-size: 22px; color: #94a3b8; }
         .spinner {
             display: inline-block;
             width: 18px;
@@ -377,20 +231,8 @@
             animation: spin 0.6s linear infinite;
             margin-right: 8px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 480px) {
-            .glass-card {
-                padding: 28px 22px;
-            }
-            .toggle-btn {
-                font-size: 13px;
-                padding: 10px;
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 480px) { .glass-card { padding: 28px 22px; } .toggle-btn { font-size: 13px; padding: 10px; } }
     </style>
 </head>
 <body>
@@ -402,11 +244,9 @@
 <div class="container">
     <div class="glass-card">
         <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <h2>Login Page</h2>
-            <p>Secure • Firebase Auth • Premium</p>
+            <div class="logo-icon"><i class="fas fa-store"></i></div>
+            <h2>WarungKu</h2>
+            <p>Login • Register • Belanja • Kelola</p>
         </div>
 
         <div class="toggle-buttons">
@@ -416,90 +256,59 @@
 
         <div id="alert" class="alert"></div>
 
-        <!-- LOGIN FORM -->
         <div id="loginForm" class="form active-form">
             <form id="loginFormElement" onsubmit="event.preventDefault(); handleLogin()">
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="Email Address" autocomplete="email">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword')"></i>
-                </div>
-                <div class="forgot-link">
-                    <a href="#" onclick="openResetModal()">Lupa Password?</a>
-                </div>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email Address" autocomplete="email"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password"><i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword')"></i></div>
+                <div class="forgot-link"><a href="#" onclick="openResetModal()">Lupa Password?</a></div>
                 <button type="submit" class="submit-btn" id="loginBtn">Login</button>
             </form>
             <div class="divider"><span>Atau</span></div>
-            <button class="google-btn" onclick="handleGoogleLogin()">
-                <i class="fab fa-google"></i> Login dengan Google
-            </button>
+            <button class="google-btn" onclick="handleGoogleLogin()"><i class="fab fa-google"></i> Login dengan Google</button>
         </div>
 
-        <!-- REGISTER FORM -->
         <div id="registerForm" class="form">
             <form id="registerFormElement" onsubmit="event.preventDefault(); handleRegister()">
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="regUsername" placeholder="Username" autocomplete="username">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="regEmail" placeholder="Email Address" autocomplete="email">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="regPassword" placeholder="Password" autocomplete="new-password">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i>
-                </div>
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regUsername" placeholder="Username" autocomplete="username"></div>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="Email Address" autocomplete="email"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="Password" autocomplete="new-password"><i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i></div>
                 <button type="submit" class="submit-btn" id="registerBtn">Daftar Sekarang</button>
             </form>
             <div class="divider"><span>Atau</span></div>
-            <button class="google-btn" onclick="handleGoogleLogin()">
-                <i class="fab fa-google"></i> Daftar dengan Google
-            </button>
+            <button class="google-btn" onclick="handleGoogleLogin()"><i class="fab fa-google"></i> Daftar dengan Google</button>
         </div>
     </div>
 </div>
 
-<!-- RESET PASSWORD MODAL -->
 <div id="resetModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeResetModal()">&times;</span>
         <i class="fas fa-key" style="font-size: 40px; color: #667eea; margin-bottom: 16px;"></i>
         <h3 style="margin-bottom: 16px;">Reset Password</h3>
-        <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="resetEmail" placeholder="Email Anda" style="padding-left: 48px;">
-        </div>
+        <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="resetEmail" placeholder="Email Anda" style="padding-left: 48px;"></div>
         <button class="submit-btn" id="resetBtn" onclick="handleResetPassword()">Kirim Link Reset</button>
-        <p style="font-size: 11px; color: #64748b; margin-top: 16px;">Kami akan mengirim email reset password</p>
     </div>
 </div>
 
 <script type="module">
-    // Import Firebase functions from window
     let auth = window.auth;
+    let database = window.database;
     let createUserWithEmailAndPassword = window.createUserWithEmailAndPassword;
     let signInWithEmailAndPassword = window.signInWithEmailAndPassword;
     let sendPasswordResetEmail = window.sendPasswordResetEmail;
     let signInWithPopup = window.signInWithPopup;
     let googleProvider = window.googleProvider;
-
-    console.log("🚀 Firebase siap digunakan! Project: login-page-b2ab9");
-    console.log("⚠️ PASTIKAN Authentication (Email/Password & Google) sudah diaktifkan di Firebase Console!");
+    let ref = window.ref;
+    let set = window.set;
+    let get = window.get;
+    let child = window.child;
 
     function showAlert(message, type) {
         const alertDiv = document.getElementById('alert');
         alertDiv.className = `alert ${type}`;
         alertDiv.innerHTML = message;
         alertDiv.style.display = 'block';
-        setTimeout(() => {
-            alertDiv.style.display = 'none';
-        }, 3500);
+        setTimeout(() => alertDiv.style.display = 'none', 3500);
     }
 
     function setLoading(buttonId, isLoading) {
@@ -534,7 +343,6 @@
         const registerFormDiv = document.getElementById('registerForm');
         const loginBtn = document.getElementById('btnLogin');
         const registerBtn = document.getElementById('btnRegister');
-        
         if (form === 'login') {
             loginFormDiv.classList.add('active-form');
             registerFormDiv.classList.remove('active-form');
@@ -549,62 +357,58 @@
         document.getElementById('alert').style.display = 'none';
     }
 
+    // CEK ATAU BUAT ROLE USER (admin atau user biasa)
+    async function checkOrCreateUserRole(uid, email, username) {
+        const userRef = ref(database, `users/${uid}`);
+        const snapshot = await get(userRef);
+        
+        if (!snapshot.exists()) {
+            // Admin emails (tambah email admin di sini)
+            const adminEmails = ['admin@warungku.com', 'putra@warungku.com', 'xtxz@warungku.com'];
+            const role = adminEmails.includes(email) ? 'admin' : 'user';
+            
+            await set(userRef, {
+                uid: uid,
+                email: email,
+                username: username,
+                role: role,
+                createdAt: new Date().toISOString()
+            });
+            return role;
+        } else {
+            return snapshot.val().role;
+        }
+    }
+
     window.handleRegister = async function() {
         const username = document.getElementById('regUsername').value.trim();
         const email = document.getElementById('regEmail').value.trim();
         const password = document.getElementById('regPassword').value;
 
-        if (!username) {
-            showAlert('Username tidak boleh kosong!', 'error');
-            return;
-        }
-        if (username.length < 3) {
-            showAlert('Username minimal 3 karakter', 'error');
-            return;
-        }
-        if (!email) {
-            showAlert('Email tidak boleh kosong!', 'error');
-            return;
-        }
-        if (!password) {
-            showAlert('Password tidak boleh kosong!', 'error');
-            return;
-        }
-        if (password.length < 6) {
-            showAlert('Password minimal 6 karakter', 'error');
-            return;
-        }
+        if (!username || username.length < 3) return showAlert('Username minimal 3 karakter', 'error');
+        if (!email) return showAlert('Email tidak boleh kosong!', 'error');
+        if (!password || password.length < 6) return showAlert('Password minimal 6 karakter', 'error');
 
         setLoading('registerBtn', true);
-
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
-            localStorage.setItem('app_username', username);
+            const role = await checkOrCreateUserRole(user.uid, email, username);
             
+            localStorage.setItem('warung_username', username);
             showAlert('Registrasi berhasil! Silakan login.', 'success');
-            
             document.getElementById('regUsername').value = '';
             document.getElementById('regEmail').value = '';
             document.getElementById('regPassword').value = '';
-            
             setTimeout(() => switchForm('login'), 1500);
         } catch (error) {
             let errorMessage = 'Registrasi gagal! ';
-            if (error.code === 'auth/email-already-in-use') {
-                errorMessage = 'Email sudah terdaftar!';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMessage = 'Email tidak valid!';
-            } else if (error.code === 'auth/weak-password') {
-                errorMessage = 'Password terlalu lemah! (min 6 karakter)';
-            } else if (error.code === 'auth/configuration-not-found') {
-                errorMessage = '⚠️ Authentication belum diaktifkan di Firebase Console! Buka Firebase → Authentication → Enable Email/Password';
-            } else {
-                errorMessage += error.message;
-            }
+            if (error.code === 'auth/email-already-in-use') errorMessage = 'Email sudah terdaftar!';
+            else if (error.code === 'auth/invalid-email') errorMessage = 'Email tidak valid!';
+            else if (error.code === 'auth/weak-password') errorMessage = 'Password terlalu lemah!';
+            else errorMessage += error.message;
             showAlert(errorMessage, 'error');
-            console.error('Firebase Error:', error);
         } finally {
             setLoading('registerBtn', false);
         }
@@ -614,49 +418,51 @@
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        if (!email) {
-            showAlert('Email tidak boleh kosong!', 'error');
-            return;
-        }
-        if (!password) {
-            showAlert('Password tidak boleh kosong!', 'error');
-            return;
-        }
+        if (!email || !password) return showAlert('Email dan password wajib diisi!', 'error');
 
         setLoading('loginBtn', true);
-
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
-            const savedUsername = localStorage.getItem('app_username') || user.email.split('@')[0];
-            localStorage.setItem('app_session', JSON.stringify({
+            // Ambil role dari database
+            const userRef = ref(database, `users/${user.uid}`);
+            const snapshot = await get(userRef);
+            let role = 'user';
+            let username = user.email.split('@')[0];
+            
+            if (snapshot.exists()) {
+                role = snapshot.val().role;
+                username = snapshot.val().username;
+            } else {
+                // Jika user lama belum punya role, buatkan
+                role = await checkOrCreateUserRole(user.uid, email, username);
+            }
+            
+            localStorage.setItem('warung_session', JSON.stringify({
                 uid: user.uid,
                 email: user.email,
-                username: savedUsername,
+                username: username,
+                role: role,
                 loginTime: new Date().toISOString()
             }));
             
-            showAlert('Login berhasil! Redirecting...', 'success');
+            showAlert(`Login berhasil! Selamat datang ${username}`, 'success');
             
+            // Redirect berdasarkan role
             setTimeout(() => {
-                window.location.href = 'index.html';
+                if (role === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
             }, 1500);
         } catch (error) {
             let errorMessage = 'Login gagal! ';
-            if (error.code === 'auth/user-not-found') {
-                errorMessage = 'Email tidak terdaftar!';
-            } else if (error.code === 'auth/wrong-password') {
-                errorMessage = 'Password salah!';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMessage = 'Email tidak valid!';
-            } else if (error.code === 'auth/too-many-requests') {
-                errorMessage = 'Terlalu banyak percobaan. Coba lagi nanti.';
-            } else if (error.code === 'auth/configuration-not-found') {
-                errorMessage = '⚠️ Authentication belum diaktifkan di Firebase Console!';
-            } else {
-                errorMessage += error.message;
-            }
+            if (error.code === 'auth/user-not-found') errorMessage = 'Email tidak terdaftar!';
+            else if (error.code === 'auth/wrong-password') errorMessage = 'Password salah!';
+            else if (error.code === 'auth/invalid-email') errorMessage = 'Email tidak valid!';
+            else errorMessage += error.message;
             showAlert(errorMessage, 'error');
         } finally {
             setLoading('loginBtn', false);
@@ -665,74 +471,48 @@
 
     window.handleGoogleLogin = async function() {
         setLoading('loginBtn', true);
-        
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
             const googleUsername = user.displayName || user.email.split('@')[0];
+            const role = await checkOrCreateUserRole(user.uid, user.email, googleUsername);
             
-            localStorage.setItem('app_username', googleUsername);
-            localStorage.setItem('app_session', JSON.stringify({
+            localStorage.setItem('warung_username', googleUsername);
+            localStorage.setItem('warung_session', JSON.stringify({
                 uid: user.uid,
                 email: user.email,
                 username: googleUsername,
+                role: role,
                 provider: 'google',
                 loginTime: new Date().toISOString()
             }));
             
-            showAlert('Login dengan Google berhasil! Redirecting...', 'success');
-            
+            showAlert('Login dengan Google berhasil!', 'success');
             setTimeout(() => {
-                window.location.href = 'index.html';
+                if (role === 'admin') window.location.href = 'admin.html';
+                else window.location.href = 'index.html';
             }, 1500);
         } catch (error) {
-            let errorMessage = 'Google login gagal: ';
-            if (error.code === 'auth/configuration-not-found') {
-                errorMessage += 'Google Sign-In belum diaktifkan di Firebase Console!';
-            } else {
-                errorMessage += error.message;
-            }
-            showAlert(errorMessage, 'error');
+            showAlert('Google login gagal: ' + error.message, 'error');
         } finally {
             setLoading('loginBtn', false);
         }
     }
 
-    window.openResetModal = function() {
-        document.getElementById('resetModal').style.display = 'flex';
-    }
-    
-    window.closeResetModal = function() {
-        document.getElementById('resetModal').style.display = 'none';
-    }
+    window.openResetModal = function() { document.getElementById('resetModal').style.display = 'flex'; }
+    window.closeResetModal = function() { document.getElementById('resetModal').style.display = 'none'; }
     
     window.handleResetPassword = async function() {
         const email = document.getElementById('resetEmail').value.trim();
-        
-        if (!email) {
-            showAlert('Masukkan email Anda!', 'error');
-            return;
-        }
-        
+        if (!email) return showAlert('Masukkan email Anda!', 'error');
         setLoading('resetBtn', true);
-        
         try {
             await sendPasswordResetEmail(auth, email);
             showAlert('Link reset password telah dikirim ke email Anda!', 'success');
             closeResetModal();
             document.getElementById('resetEmail').value = '';
         } catch (error) {
-            let errorMessage = '';
-            if (error.code === 'auth/user-not-found') {
-                errorMessage = 'Email tidak terdaftar!';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMessage = 'Email tidak valid!';
-            } else if (error.code === 'auth/configuration-not-found') {
-                errorMessage = '⚠️ Authentication belum diaktifkan di Firebase Console!';
-            } else {
-                errorMessage = error.message;
-            }
-            showAlert(errorMessage, 'error');
+            showAlert(error.message, 'error');
         } finally {
             setLoading('resetBtn', false);
         }
@@ -740,16 +520,17 @@
 
     window.onclick = function(event) {
         const modal = document.getElementById('resetModal');
-        if (event.target === modal) {
-            closeResetModal();
-        }
+        if (event.target === modal) closeResetModal();
     }
 
-    // Cek session
-    const existingSession = localStorage.getItem('app_session');
-    if (existingSession && auth.currentUser) {
-        window.location.href = 'index.html';
+    const existingSession = localStorage.getItem('warung_session');
+    if (existingSession) {
+        const sessionData = JSON.parse(existingSession);
+        setTimeout(() => {
+            if (sessionData.role === 'admin') window.location.href = 'admin.html';
+            else window.location.href = 'index.html';
+        }, 100);
     }
 </script>
 </body>
-</html> 
+</html>
