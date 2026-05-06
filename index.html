@@ -3,207 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | AuthVerse</title>
+    <title>Dashboard | Login Page</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f0f4f8;
-            min-height: 100vh;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 20px;
-            border-radius: 40px;
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.3);
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: white;
-            color: #667eea;
-        }
-
-        /* Container */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 32px;
-        }
-
-        /* Welcome Card */
-        .welcome-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 32px;
-            padding: 40px;
-            color: white;
-            margin-bottom: 32px;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea20, #764ba220);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            color: #667eea;
-        }
-
-        .stat-info h3 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1e293b;
-        }
-
-        .stat-info p {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        /* Main Content */
-        .main-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .card h3 {
-            margin-bottom: 20px;
-            color: #1e293b;
-            font-size: 20px;
-        }
-
-        canvas {
-            max-height: 300px;
-        }
-
-        /* Activity List */
-        .activity-list {
-            list-style: none;
-        }
-
-        .activity-list li {
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            background: #f1f5f9;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-top: 16px;
-        }
-
-        .action-btn {
-            flex: 1;
-            padding: 16px;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .action-btn:hover {
-            border-color: #667eea;
-            background: #eef2ff;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-container { padding: 20px; }
-            .main-content { grid-template-columns: 1fr; }
-            .navbar { padding: 16px; }
-        }
+        /* (SAMA SEPERTI SEBELUMNYA - CSS tidak berubah) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .navbar { background: linear-gradient(135deg, #667eea, #764ba2); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; color: white; flex-wrap: wrap; gap: 16px; }
+        .logo { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .user-info { display: flex; align-items: center; gap: 20px; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; }
+        .logout-btn { background: rgba(255,255,255,0.3); border: none; padding: 8px 20px; border-radius: 30px; color: white; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .logout-btn:hover { background: white; color: #667eea; }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 32px; }
+        .welcome-card { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 32px; padding: 40px; color: white; margin-bottom: 32px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background: white; border-radius: 24px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #667eea20, #764ba220); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #667eea; }
+        .stat-info h3 { font-size: 28px; font-weight: 800; color: #1e293b; }
+        .stat-info p { color: #64748b; font-size: 14px; }
+        .main-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .card h3 { margin-bottom: 20px; color: #1e293b; font-size: 20px; }
+        canvas { max-height: 300px; }
+        .activity-list { list-style: none; }
+        .activity-list li { padding: 12px 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+        .activity-icon { width: 40px; height: 40px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .quick-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+        .action-btn { flex: 1; padding: 16px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .action-btn:hover { border-color: #667eea; background: #eef2ff; }
+        @media (max-width: 768px) { .dashboard-container { padding: 20px; } .main-content { grid-template-columns: 1fr; } .navbar { padding: 16px; } }
     </style>
 </head>
 <body>
@@ -211,7 +42,7 @@
 <div class="navbar">
     <div class="logo">
         <i class="fas fa-shield-alt"></i>
-        <span>AuthVerse Dashboard</span>
+        <span>Login Page Dashboard</span>
     </div>
     <div class="user-info">
         <i class="fas fa-user-circle"></i>
@@ -222,129 +53,38 @@
 </div>
 
 <div class="dashboard-container">
-    <!-- Welcome Card -->
     <div class="welcome-card">
         <h1 id="welcomeMessage" style="font-size: 32px; margin-bottom: 8px;">Welcome back! 👋</h1>
-        <p>Selamat datang di dashboard premium. Nikmati fitur-fitur eksklusif untuk Anda.</p>
+        <p>Selamat datang di dashboard premium.</p>
     </div>
 
-    <!-- Stats Grid -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-wallet"></i></div>
-            <div class="stat-info">
-                <h3>Rp 2.500.000</h3>
-                <p>Total Saldo</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-exchange-alt"></i></div>
-            <div class="stat-info">
-                <h3>24</h3>
-                <p>Total Transaksi</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-trophy"></i></div>
-            <div class="stat-info">
-                <h3>Gold Member</h3>
-                <p>Tier Status</p>
-            </div>
-        </div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3>1,234</h3><p>Total Users</p></div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-info"><h3>8,492</h3><p>Total Views</p></div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-trophy"></i></div><div class="stat-info"><h3>Gold Tier</h3><p>Premium Member</p></div></div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Chart Card -->
-        <div class="card">
-            <h3><i class="fas fa-chart-line"></i> Aktivitas Bulanan</h3>
-            <canvas id="activityChart"></canvas>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="card">
-            <h3><i class="fas fa-history"></i> Aktivitas Terbaru</h3>
-            <ul class="activity-list" id="activityList">
-                <li><div class="activity-icon"><i class="fas fa-sign-in-alt"></i></div><div><strong>Login</strong><br><small>2 menit lalu</small></div></li>
-                <li><div class="activity-icon"><i class="fas fa-qrcode"></i></div><div><strong>Deposit QRIS</strong><br><small>Rp 100.000 - 1 jam lalu</small></div></li>
-                <li><div class="activity-icon"><i class="fas fa-paper-plane"></i></div><div><strong>Transfer ke User</strong><br><small>Rp 50.000 - 3 jam lalu</small></div></li>
-            </ul>
-        </div>
+        <div class="card"><h3><i class="fas fa-chart-line"></i> Statistik Aktivitas</h3><canvas id="activityChart"></canvas></div>
+        <div class="card"><h3><i class="fas fa-history"></i> Aktivitas Terbaru</h3><ul class="activity-list"><li><div class="activity-icon"><i class="fas fa-sign-in-alt"></i></div><div><strong>Login</strong><br><small>Baru saja</small></div></li><li><div class="activity-icon"><i class="fas fa-user-plus"></i></div><div><strong>Akun Dibuat</strong><br><small>Hari ini</small></div></li></ul></div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="card">
-        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-        <div class="quick-actions">
-            <div class="action-btn" onclick="showComingSoon()">
-                <i class="fas fa-qrcode" style="font-size: 24px;"></i>
-                <p>Top Up Saldo</p>
-            </div>
-            <div class="action-btn" onclick="showComingSoon()">
-                <i class="fas fa-paper-plane"></i>
-                <p>Transfer</p>
-            </div>
-            <div class="action-btn" onclick="showComingSoon()">
-                <i class="fas fa-chart-simple"></i>
-                <p>Riwayat</p>
-            </div>
-            <div class="action-btn" onclick="showComingSoon()">
-                <i class="fas fa-user"></i>
-                <p>Profil</p>
-            </div>
-        </div>
-    </div>
+    <div class="card"><h3><i class="fas fa-bolt"></i> Quick Actions</h3><div class="quick-actions"><div class="action-btn" onclick="showComingSoon()"><i class="fas fa-user-edit" style="font-size: 24px;"></i><p>Edit Profil</p></div><div class="action-btn" onclick="showComingSoon()"><i class="fas fa-cog"></i><p>Settings</p></div><div class="action-btn" onclick="showComingSoon()"><i class="fas fa-chart-simple"></i><p>Analytics</p></div></div></div>
 </div>
 
 <script>
-    // Cek session
-    const session = localStorage.getItem('authverse_session');
-    if(!session) {
-        window.location.href = 'login.html';
-    }
-
+    const session = localStorage.getItem('app_session');
+    if(!session) { window.location.href = 'login.html'; }
     const userData = JSON.parse(session);
     document.getElementById('usernameDisplay').innerText = userData.username;
     document.getElementById('emailDisplay').innerText = userData.email;
-    document.getElementById('welcomeMessage').innerHTML = `Welcome back, ${userData.username}! 👋`;
-
-    // Chart.js
-    const ctx = document.getElementById('activityChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-            datasets: [{
-                label: 'Transaksi',
-                data: [12, 19, 15, 17, 14, 24],
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102,126,234,0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
-
-    function logout() {
-        localStorage.removeItem('authverse_session');
-        window.location.href = 'login.html';
-    }
-
-    function showComingSoon() {
-        alert('Fitur ini akan segera hadir! 🚀');
-    }
-
-    // Set greeting based on time
     const hour = new Date().getHours();
-    let greeting = '';
-    if(hour < 12) greeting = 'Selamat Pagi';
-    else if(hour < 18) greeting = 'Selamat Siang';
-    else greeting = 'Selamat Malam';
+    let greeting = hour < 12 ? 'Selamat Pagi' : (hour < 18 ? 'Selamat Siang' : 'Selamat Malam');
     document.getElementById('welcomeMessage').innerHTML = `${greeting}, ${userData.username}! 👋`;
+    const ctx = document.getElementById('activityChart').getContext('2d');
+    new Chart(ctx, { type: 'line', data: { labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], datasets: [{ label: 'Aktivitas', data: [12, 19, 15, 17, 14, 24, 20], borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', tension: 0.4, fill: true }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
+    function logout() { localStorage.removeItem('app_session'); window.location.href = 'login.html'; }
+    function showComingSoon() { alert('⚡ Fitur ini akan segera hadir!'); }
 </script>
 </body>
 </html>
