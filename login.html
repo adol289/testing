@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AuthPlus | Login & Register with OTP</title>
+    <title>AuthPlus | Login with OTP (Real Email)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, applyActionCode, checkActionCode } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAbTdGLZaXvyLFAzGlzPpHi8IGL1SnPCNI",
             authDomain: "login-page-b2ab9.firebaseapp.com",
@@ -21,8 +20,7 @@
             projectId: "login-page-b2ab9",
             storageBucket: "login-page-b2ab9.firebasestorage.app",
             messagingSenderId: "136262198916",
-            appId: "1:136262198916:web:82ee7cd9ba575d0deb84d1",
-            measurementId: "G-84VL5MFC0N"
+            appId: "1:136262198916:web:82ee7cd9ba575d0deb84d1"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -34,383 +32,160 @@
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.sendPasswordResetEmail = sendPasswordResetEmail;
-        window.sendEmailVerification = sendEmailVerification;
         window.ref = ref;
         window.set = set;
         window.get = get;
     </script>
 
-    <!-- Particles.js -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Particles Background */
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 0;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        }
-
-        /* Container */
-        .container {
-            position: relative;
-            z-index: 10;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-
-        /* Glass Card */
         .glass-card {
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255,255,255,0.07);
             backdrop-filter: blur(12px);
             border-radius: 32px;
             padding: 40px 32px;
             width: 100%;
             max-width: 480px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 0.6s ease;
+            border: 1px solid rgba(255,255,255,0.15);
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Logo */
-        .logo {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
+        .logo { text-align: center; margin-bottom: 32px; }
         .logo-icon {
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 24px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 16px;
-            animation: pulse 2s infinite;
         }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102,126,234,0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(102,126,234,0); }
-        }
-
-        .logo-icon i {
-            font-size: 32px;
-            color: white;
-        }
-
-        .logo h2 {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #fff, #a0aec0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logo p {
-            color: rgba(255,255,255,0.6);
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        /* Toggle Buttons */
+        .logo-icon i { font-size: 32px; color: white; }
+        .logo h2 { font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #fff, #a0aec0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { color: rgba(255,255,255,0.6); font-size: 13px; }
         .toggle-buttons {
-            display: flex;
-            gap: 12px;
+            display: flex; gap: 12px;
             background: rgba(255,255,255,0.1);
-            padding: 6px;
-            border-radius: 60px;
+            padding: 6px; border-radius: 60px;
             margin-bottom: 32px;
         }
-
         .toggle-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: transparent;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
+            flex: 1; padding: 12px; border: none;
+            background: transparent; border-radius: 50px;
+            font-weight: 600; cursor: pointer;
             color: rgba(255,255,255,0.7);
         }
-
         .toggle-btn.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
         }
-
-        /* Forms */
-        .form {
-            display: none;
-            animation: slideUp 0.4s ease;
-        }
-
-        .form.active-form {
-            display: block;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Input Groups */
-        .input-group {
-            margin-bottom: 18px;
-            position: relative;
-        }
-
+        .form { display: none; }
+        .form.active-form { display: block; }
+        .input-group { margin-bottom: 18px; position: relative; }
         .input-group i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
+            position: absolute; left: 16px; top: 50%;
             transform: translateY(-50%);
             color: rgba(255,255,255,0.5);
-            font-size: 18px;
-            pointer-events: none;
         }
-
         .input-group input {
-            width: 100%;
-            padding: 15px 16px 15px 48px;
+            width: 100%; padding: 15px 16px 15px 48px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 28px;
-            font-size: 15px;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s;
             background: rgba(255,255,255,0.08);
             color: white;
         }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: rgba(255,255,255,0.12);
-        }
-
-        .input-group input::placeholder {
-            color: rgba(255,255,255,0.4);
-        }
-
+        .input-group input:focus { outline: none; border-color: #667eea; }
+        .input-group input::placeholder { color: rgba(255,255,255,0.4); }
         .toggle-password {
-            position: absolute;
-            right: 16px;
-            top: 50%;
+            position: absolute; right: 16px; top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
             color: rgba(255,255,255,0.5);
-            z-index: 2;
         }
-
-        /* Buttons */
         .submit-btn {
-            width: 100%;
-            padding: 15px;
+            width: 100%; padding: 15px;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            color: white; border: none; border-radius: 30px;
+            font-weight: 600; cursor: pointer;
             margin-top: 8px;
         }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .forgot-link {
-            text-align: right;
-            margin-top: 12px;
-        }
-
-        .forgot-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 12px;
-        }
-
-        /* Alert */
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .forgot-link { text-align: right; margin-top: 12px; }
+        .forgot-link a { color: #667eea; text-decoration: none; font-size: 12px; }
         .alert {
-            padding: 12px 16px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            font-size: 13px;
+            padding: 12px 16px; border-radius: 20px;
+            margin-bottom: 20px; font-size: 13px;
             display: none;
-            font-weight: 500;
         }
-
-        .alert.success {
-            background: rgba(16,185,129,0.2);
-            color: #10b981;
-            border-left: 3px solid #10b981;
-        }
-
-        .alert.error {
-            background: rgba(239,68,68,0.2);
-            color: #ef4444;
-            border-left: 3px solid #ef4444;
-        }
-
-        .alert.info {
-            background: rgba(59,130,246,0.2);
-            color: #3b82f6;
-            border-left: 3px solid #3b82f6;
-        }
-
-        /* OTP Modal */
+        .alert.success { background: rgba(16,185,129,0.2); color: #10b981; border-left: 3px solid #10b981; }
+        .alert.error { background: rgba(239,68,68,0.2); color: #ef4444; border-left: 3px solid #ef4444; }
+        .alert.info { background: rgba(59,130,246,0.2); color: #3b82f6; border-left: 3px solid #3b82f6; }
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.8);
             backdrop-filter: blur(8px);
             z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            align-items: center; justify-content: center;
         }
-
         .modal-content {
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(15,23,42,0.95);
             backdrop-filter: blur(10px);
-            max-width: 400px;
-            width: 90%;
-            padding: 32px;
-            border-radius: 32px;
+            max-width: 400px; width: 90%;
+            padding: 32px; border-radius: 32px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
-            animation: modalPop 0.3s ease;
         }
-
-        @keyframes modalPop {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-content h3 {
-            color: white;
-            margin-bottom: 16px;
-        }
-
-        .modal-content p {
-            color: rgba(255,255,255,0.6);
-            font-size: 13px;
-            margin-bottom: 24px;
-        }
-
+        .modal-content h3 { color: white; margin-bottom: 16px; }
+        .modal-content p { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
         .otp-inputs {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 24px;
+            display: flex; gap: 12px;
+            justify-content: center; margin-bottom: 24px;
         }
-
         .otp-inputs input {
-            width: 55px;
-            height: 65px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: 600;
+            width: 55px; height: 65px;
+            text-align: center; font-size: 24px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 16px;
             background: rgba(255,255,255,0.08);
             color: white;
         }
-
-        .otp-inputs input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .resend-link {
-            margin-top: 16px;
-            font-size: 12px;
-            color: rgba(255,255,255,0.5);
-        }
-
-        .resend-link a {
-            color: #667eea;
-            cursor: pointer;
-        }
-
+        .otp-inputs input:focus { outline: none; border-color: #667eea; }
+        .resend-link { margin-top: 16px; font-size: 12px; }
+        .resend-link a { color: #667eea; cursor: pointer; }
         .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid white;
-            border-radius: 50%;
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid white; border-radius: 50%;
             border-top-color: transparent;
             animation: spin 0.6s linear infinite;
             margin-right: 8px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 480px) {
-            .glass-card {
-                padding: 28px 22px;
-            }
-            .otp-inputs input {
-                width: 45px;
-                height: 55px;
-                font-size: 20px;
-            }
+            .glass-card { padding: 28px 22px; }
+            .otp-inputs input { width: 45px; height: 55px; font-size: 20px; }
         }
     </style>
 </head>
 <body>
 
-<div id="particles-js"></div>
-
 <div class="container">
     <div class="glass-card">
         <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-shield-alt"></i>
-            </div>
+            <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
             <h2>AuthPlus</h2>
-            <p>Secure • OTP Verification • Premium</p>
+            <p>Secure • Real Email OTP • Premium</p>
         </div>
 
         <div class="toggle-buttons">
@@ -425,11 +200,11 @@
             <form onsubmit="event.preventDefault(); handleLogin()">
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="Email Address" autocomplete="email">
+                    <input type="email" id="loginEmail" placeholder="Email Address">
                 </div>
                 <div class="input-group">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+                    <input type="password" id="loginPassword" placeholder="Password">
                     <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword')"></i>
                 </div>
                 <div class="forgot-link">
@@ -444,15 +219,15 @@
             <form onsubmit="event.preventDefault(); handleRegister()">
                 <div class="input-group">
                     <i class="fas fa-user"></i>
-                    <input type="text" id="regUsername" placeholder="Username" autocomplete="username">
+                    <input type="text" id="regUsername" placeholder="Username">
                 </div>
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" id="regEmail" placeholder="Email Address" autocomplete="email">
+                    <input type="email" id="regEmail" placeholder="Email Address">
                 </div>
                 <div class="input-group">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="regPassword" placeholder="Password" autocomplete="new-password">
+                    <input type="password" id="regPassword" placeholder="Password">
                     <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i>
                 </div>
                 <button type="submit" class="submit-btn" id="registerBtn">Daftar Sekarang</button>
@@ -461,11 +236,11 @@
     </div>
 </div>
 
-<!-- OTP VERIFICATION MODAL -->
+<!-- OTP MODAL -->
 <div id="otpModal" class="modal">
     <div class="modal-content">
-        <h3 id="otpModalTitle">Verifikasi Email</h3>
-        <p id="otpModalDesc">Kami telah mengirim kode OTP ke <strong id="otpEmailDisplay"></strong></p>
+        <h3>Verifikasi Email</h3>
+        <p>Kami telah mengirim kode OTP ke <strong id="otpEmailDisplay"></strong></p>
         <div class="otp-inputs">
             <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 0)">
             <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 1)">
@@ -474,31 +249,31 @@
             <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 4)">
             <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 5)">
         </div>
-        <button class="submit-btn" id="verifyOtpBtn" onclick="verifyOTP()">Verifikasi</button>
+        <button class="submit-btn" id="verifyBtn" onclick="verifyOTP()">Verifikasi</button>
         <div class="resend-link">
             Tidak menerima kode? <a onclick="resendOTP()">Kirim Ulang</a>
         </div>
     </div>
 </div>
 
-<!-- RESET PASSWORD OTP MODAL -->
-<div id="resetOtpModal" class="modal">
+<!-- RESET PASSWORD MODAL -->
+<div id="resetModal" class="modal">
     <div class="modal-content">
         <h3>Reset Password</h3>
         <p>Masukkan email Anda untuk menerima kode OTP reset password</p>
-        <div class="input-group" style="margin-bottom: 20px;">
+        <div class="input-group">
             <i class="fas fa-envelope"></i>
-            <input type="email" id="resetEmailInput" placeholder="Email Address" style="padding-left: 48px;">
+            <input type="email" id="resetEmailInput" placeholder="Email Address">
         </div>
         <button class="submit-btn" onclick="sendResetOTP()">Kirim Kode OTP</button>
     </div>
 </div>
 
-<!-- CONFIRM RESET PASSWORD MODAL -->
+<!-- CONFIRM RESET MODAL -->
 <div id="confirmResetModal" class="modal">
     <div class="modal-content">
         <h3>Reset Password</h3>
-        <p>Masukkan kode OTP dan password baru Anda</p>
+        <p>Masukkan kode OTP dan password baru</p>
         <div class="otp-inputs">
             <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 0)">
             <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 1)">
@@ -509,38 +284,26 @@
         </div>
         <div class="input-group">
             <i class="fas fa-lock"></i>
-            <input type="password" id="newPassword" placeholder="Password Baru" style="padding-left: 48px;">
+            <input type="password" id="newPassword" placeholder="Password Baru">
         </div>
         <button class="submit-btn" onclick="confirmResetPassword()">Reset Password</button>
     </div>
 </div>
 
 <script>
-    // ============ PARTICLES.JS CONFIG ============
-    particlesJS("particles-js", {
-        particles: {
-            number: { value: 80, density: { enable: true, value_area: 800 } },
-            color: { value: "#667eea" },
-            shape: { type: "circle" },
-            opacity: { value: 0.5, random: true },
-            size: { value: 3, random: true },
-            line_linked: { enable: true, distance: 150, color: "#764ba2", opacity: 0.2, width: 1 },
-            move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
-        },
-        interactivity: {
-            detect_on: "canvas",
-            events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" } }
-        },
-        retina_detect: true
-    });
-
-    // ============ VARIABLES ============
+    // ============ EMAILJS CONFIGURATION (SUDAH DIISI) ============
+    emailjs.init("XHGUVte16VmyTtjTO");
+    
+    const EMAILJS_SERVICE_ID = "service_jtrmkao";
+    const EMAILJS_TEMPLATE_OTP = "template_9az6529";      // One-Time Password
+    const EMAILJS_TEMPLATE_RESET = "template_xg6i4g9";    // Password Reset
+    
+    // ============ FIREBASE ============
     let auth = window.auth;
     let database = window.database;
     let createUserWithEmailAndPassword = window.createUserWithEmailAndPassword;
     let signInWithEmailAndPassword = window.signInWithEmailAndPassword;
     let sendPasswordResetEmail = window.sendPasswordResetEmail;
-    let sendEmailVerification = window.sendEmailVerification;
     let ref = window.ref;
     let set = window.set;
     let get = window.get;
@@ -548,12 +311,36 @@
     let pendingUserData = null;
     let generatedOTP = null;
     let pendingResetEmail = null;
+    let resetOTP = null;
+
+    // ============ EMAILJS SEND OTP FUNCTION ============
+    async function sendOTPEmail(email, otp, type = 'verification') {
+        const templateParams = {
+            to_email: email,
+            to_name: email.split('@')[0],
+            otp_code: otp,
+            year: new Date().getFullYear()
+        };
+        
+        let templateId = type === 'verification' ? EMAILJS_TEMPLATE_OTP : EMAILJS_TEMPLATE_RESET;
+        
+        try {
+            const response = await emailjs.send(EMAILJS_SERVICE_ID, templateId, templateParams);
+            console.log("✅ Email sent successfully!", response);
+            showAlert(`Kode OTP telah dikirim ke ${email}`, 'success');
+            return true;
+        } catch (error) {
+            console.error("❌ Email failed to send:", error);
+            showAlert(`Gagal mengirim email: ${error.text || error.message}`, 'error');
+            return false;
+        }
+    }
 
     // ============ HELPER FUNCTIONS ============
     function showAlert(message, type) {
         const alertDiv = document.getElementById('alert');
         alertDiv.className = `alert ${type}`;
-        alertDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+        alertDiv.innerHTML = message;
         alertDiv.style.display = 'block';
         setTimeout(() => alertDiv.style.display = 'none', 4000);
     }
@@ -566,6 +353,7 @@
         } else {
             if (buttonId === 'loginBtn') btn.innerHTML = 'Login';
             if (buttonId === 'registerBtn') btn.innerHTML = 'Daftar Sekarang';
+            if (buttonId === 'verifyBtn') btn.innerHTML = 'Verifikasi';
             btn.disabled = false;
         }
     }
@@ -603,17 +391,34 @@
         document.getElementById('alert').style.display = 'none';
     }
 
-    // Generate OTP 6 digit
     function generateOTP() {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    // Kirim email OTP (simulasi dengan console & alert)
-    function sendOTPEmail(email, otp, type = 'verification') {
-        console.log(`📧 [EMAIL SIMULATION] To: ${email}`);
-        console.log(`📧 [${type.toUpperCase()} OTP] Your code is: ${otp}`);
-        showAlert(`Kode OTP: ${otp} (cek console browser)`, 'info');
-        return true;
+    function moveToNext(input, index) {
+        if (input.value.length === 1 && index < 5) {
+            document.querySelectorAll('.otp-digit')[index + 1].focus();
+        }
+    }
+
+    function moveToNextReset(input, index) {
+        if (input.value.length === 1 && index < 5) {
+            document.querySelectorAll('.reset-otp-digit')[index + 1].focus();
+        }
+    }
+
+    function closeOTPModal() {
+        document.getElementById('otpModal').style.display = 'none';
+    }
+
+    function closeResetModal() {
+        document.getElementById('resetModal').style.display = 'none';
+    }
+
+    function closeConfirmResetModal() {
+        document.getElementById('confirmResetModal').style.display = 'none';
+        pendingResetEmail = null;
+        resetOTP = null;
     }
 
     // ============ REGISTER WITH OTP ============
@@ -637,38 +442,26 @@
 
         setLoading('registerBtn', true);
         
-        try {
-            // Cek apakah email sudah terdaftar
-            // Simpan data sementara
-            pendingUserData = { username, email, password };
-            
-            // Generate dan kirim OTP
-            generatedOTP = generateOTP();
-            sendOTPEmail(email, generatedOTP, 'verification');
-            
-            // Tampilkan modal OTP
-            document.getElementById('otpModalTitle').innerText = 'Verifikasi Email';
-            document.getElementById('otpModalDesc').innerHTML = `Kami telah mengirim kode OTP ke <strong>${email}</strong>`;
+        pendingUserData = { username, email, password };
+        generatedOTP = generateOTP();
+        
+        const emailSent = await sendOTPEmail(email, generatedOTP, 'verification');
+        
+        if (emailSent) {
             document.getElementById('otpEmailDisplay').innerText = email;
             document.getElementById('otpModal').style.display = 'flex';
-            
-            // Reset OTP inputs
             document.querySelectorAll('.otp-digit').forEach((input, idx) => {
                 input.value = '';
                 if(idx === 0) input.focus();
             });
-        } catch (error) {
-            showAlert('Gagal mengirim OTP: ' + error.message, 'error');
-        } finally {
-            setLoading('registerBtn', false);
         }
+        
+        setLoading('registerBtn', false);
     }
 
     async function verifyOTP() {
         let enteredOTP = '';
-        document.querySelectorAll('.otp-digit').forEach(input => {
-            enteredOTP += input.value;
-        });
+        document.querySelectorAll('.otp-digit').forEach(input => enteredOTP += input.value);
         
         if (enteredOTP.length !== 6) {
             showAlert('Masukkan 6 digit kode OTP!', 'error');
@@ -680,15 +473,12 @@
             return;
         }
         
-        // OTP benar, lanjutkan registrasi ke Firebase
-        document.getElementById('verifyOtpBtn').innerHTML = '<span class="spinner"></span> Memverifikasi...';
-        document.getElementById('verifyOtpBtn').disabled = true;
+        setLoading('verifyBtn', true);
         
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, pendingUserData.email, pendingUserData.password);
             const user = userCredential.user;
             
-            // Simpan username ke database
             await set(ref(database, `users/${user.uid}`), {
                 username: pendingUserData.username,
                 email: pendingUserData.email,
@@ -696,13 +486,9 @@
                 createdAt: new Date().toISOString()
             });
             
-            // Kirim email verifikasi Firebase (opsional)
-            await sendEmailVerification(user);
-            
             showAlert('Registrasi berhasil! Silakan login.', 'success');
             closeOTPModal();
             
-            // Clear form
             document.getElementById('regUsername').value = '';
             document.getElementById('regEmail').value = '';
             document.getElementById('regPassword').value = '';
@@ -715,35 +501,19 @@
             let errorMsg = 'Registrasi gagal! ';
             if (error.code === 'auth/email-already-in-use') {
                 errorMsg = 'Email sudah terdaftar!';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMsg = 'Email tidak valid!';
             } else {
                 errorMsg += error.message;
             }
             showAlert(errorMsg, 'error');
         } finally {
-            document.getElementById('verifyOtpBtn').innerHTML = 'Verifikasi';
-            document.getElementById('verifyOtpBtn').disabled = false;
+            setLoading('verifyBtn', false);
         }
     }
 
-    function resendOTP() {
+    async function resendOTP() {
         if (pendingUserData && pendingUserData.email) {
             generatedOTP = generateOTP();
-            sendOTPEmail(pendingUserData.email, generatedOTP, 'verification');
-            showAlert('Kode OTP baru telah dikirim!', 'success');
-        }
-    }
-
-    function closeOTPModal() {
-        document.getElementById('otpModal').style.display = 'none';
-        pendingUserData = null;
-        generatedOTP = null;
-    }
-
-    function moveToNext(input, index) {
-        if (input.value.length === 1 && index < 5) {
-            document.querySelectorAll('.otp-digit')[index + 1].focus();
+            await sendOTPEmail(pendingUserData.email, generatedOTP, 'verification');
         }
     }
 
@@ -763,7 +533,6 @@
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
-            // Ambil username dari database
             const snapshot = await get(ref(database, `users/${user.uid}`));
             let username = email.split('@')[0];
             if (snapshot.exists()) {
@@ -784,34 +553,22 @@
             }, 1500);
         } catch (error) {
             let errorMsg = 'Login gagal! ';
-            if (error.code === 'auth/user-not-found') {
-                errorMsg = 'Email tidak terdaftar!';
-            } else if (error.code === 'auth/wrong-password') {
-                errorMsg = 'Password salah!';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMsg = 'Email tidak valid!';
-            } else {
-                errorMsg += error.message;
-            }
+            if (error.code === 'auth/user-not-found') errorMsg = 'Email tidak terdaftar!';
+            else if (error.code === 'auth/wrong-password') errorMsg = 'Password salah!';
+            else errorMsg += error.message;
             showAlert(errorMsg, 'error');
         } finally {
             setLoading('loginBtn', false);
         }
     }
 
-    // ============ RESET PASSWORD WITH OTP ============
-    let resetOTP = null;
-    
+    // ============ RESET PASSWORD ============
     function openResetOTPModal() {
-        document.getElementById('resetOtpModal').style.display = 'flex';
+        document.getElementById('resetModal').style.display = 'flex';
         document.getElementById('resetEmailInput').value = '';
     }
     
-    function closeResetOtpModal() {
-        document.getElementById('resetOtpModal').style.display = 'none';
-    }
-    
-    function sendResetOTP() {
+    async function sendResetOTP() {
         const email = document.getElementById('resetEmailInput').value.trim();
         
         if (!email) {
@@ -821,30 +578,23 @@
         
         pendingResetEmail = email;
         resetOTP = generateOTP();
-        sendOTPEmail(email, resetOTP, 'reset password');
         
-        closeResetOtpModal();
+        const emailSent = await sendOTPEmail(email, resetOTP, 'reset');
         
-        // Buka modal confirm reset
-        document.getElementById('confirmResetModal').style.display = 'flex';
-        document.querySelectorAll('.reset-otp-digit').forEach((input, idx) => {
-            input.value = '';
-            if(idx === 0) input.focus();
-        });
-        document.getElementById('newPassword').value = '';
-    }
-    
-    function moveToNextReset(input, index) {
-        if (input.value.length === 1 && index < 5) {
-            document.querySelectorAll('.reset-otp-digit')[index + 1].focus();
+        if (emailSent) {
+            closeResetModal();
+            document.getElementById('confirmResetModal').style.display = 'flex';
+            document.querySelectorAll('.reset-otp-digit').forEach((input, idx) => {
+                input.value = '';
+                if(idx === 0) input.focus();
+            });
+            document.getElementById('newPassword').value = '';
         }
     }
     
     async function confirmResetPassword() {
         let enteredOTP = '';
-        document.querySelectorAll('.reset-otp-digit').forEach(input => {
-            enteredOTP += input.value;
-        });
+        document.querySelectorAll('.reset-otp-digit').forEach(input => enteredOTP += input.value);
         
         const newPassword = document.getElementById('newPassword').value;
         
@@ -865,35 +615,18 @@
         
         try {
             await sendPasswordResetEmail(auth, pendingResetEmail);
-            showAlert('Link reset password telah dikirim ke email Anda! Gunakan link tersebut untuk mengatur password baru.', 'success');
+            showAlert('Link reset password telah dikirim ke email Anda!', 'success');
             closeConfirmResetModal();
-            document.getElementById('resetEmailInput').value = '';
         } catch (error) {
-            let errorMsg = '';
-            if (error.code === 'auth/user-not-found') {
-                errorMsg = 'Email tidak terdaftar!';
-            } else {
-                errorMsg = error.message;
-            }
-            showAlert(errorMsg, 'error');
+            showAlert(error.message, 'error');
         }
     }
-    
-    function closeConfirmResetModal() {
-        document.getElementById('confirmResetModal').style.display = 'none';
-        pendingResetEmail = null;
-        resetOTP = null;
-    }
 
-    // Close modal on outside click
+    // Close modals on outside click
     window.onclick = function(event) {
-        const otpModal = document.getElementById('otpModal');
-        const resetOtpModal = document.getElementById('resetOtpModal');
-        const confirmResetModal = document.getElementById('confirmResetModal');
-        
-        if (event.target === otpModal) closeOTPModal();
-        if (event.target === resetOtpModal) closeResetOtpModal();
-        if (event.target === confirmResetModal) closeConfirmResetModal();
+        if (event.target === document.getElementById('otpModal')) closeOTPModal();
+        if (event.target === document.getElementById('resetModal')) closeResetModal();
+        if (event.target === document.getElementById('confirmResetModal')) closeConfirmResetModal();
     }
     
     // Expose functions
@@ -910,7 +643,7 @@
     window.moveToNextReset = moveToNextReset;
     window.closeOTPModal = closeOTPModal;
     window.closeConfirmResetModal = closeConfirmResetModal;
-    window.closeResetOtpModal = closeResetOtpModal;
+    window.closeResetModal = closeResetModal;
 </script>
 </body>
 </html>
