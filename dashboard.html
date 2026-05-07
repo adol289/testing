@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AuthPlus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .welcome-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 24px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2><i class="fas fa-shield-alt"></i> AuthPlus</h2>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+    <div class="container">
+        <div class="welcome-card">
+            <i class="fas fa-check-circle" style="font-size: 64px; color: #10b981; margin-bottom: 20px;"></i>
+            <h1 id="welcomeText">Welcome back!</h1>
+            <p id="userInfo" style="margin-top: 16px; opacity: 0.8;"></p>
+        </div>
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> Informasi Akun</h3>
+            <p style="margin-top: 16px;">Anda berhasil login menggunakan sistem verifikasi OTP. Keamanan akun Anda terjamin.</p>
+        </div>
+    </div>
+    <script>
+        const session = localStorage.getItem('auth_session');
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+        const user = JSON.parse(session);
+        document.getElementById('welcomeText').innerHTML = `Selamat Datang, ${user.username}! 👋`;
+        document.getElementById('userInfo').innerHTML = `${user.email} • Login: ${new Date(user.loginTime).toLocaleString('id-ID')}`;
+        
+        function logout() {
+            localStorage.removeItem('auth_session');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
