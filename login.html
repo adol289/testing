@@ -291,6 +291,571 @@
 </div>
 
 <script>
+    // ============ EMAILJS CONFIGURATION ============
+    // PUBLIC KEY TUAN
+    emailjs.init("XHGUVte16VmyTtjTO");
+    
+    // SERVICE ID yang menggunakan provider Gmail_API
+    // GANTI dengan Service ID yang muncul setelah Tuan buat service "Gmail_API"
+    const EMAILJS_SERVICE_ID = "service_jtrmkao";  // ← GANTI DENGAN SERVICE ID ASLI!
+    
+    const EMAILJS_TEMPLATE_OTP = "template_9az6529";
+    const EMAILJS_TEMPLATE_RESET = "template_xg6i4g9";
+    
+    // ============ FIREBASE ============
+    let auth = window.auth;
+    let database = window.database;
+    let createUserWithEmailAndPassword = window.createUserWithEmailAndPassword;
+    let signInWithEmailAndPassword = window.signInWithEmailAndPassword;
+    let sendPasswordResetEmail = window.sendPasswordResetEmail;
+    let ref = window.ref;
+    let set = window.set;
+    let get = window.get;
+
+    let pendingUserData = null;
+    let generatedOTP = null;
+    let pendingResetEmail = null;
+    let resetOTP = null;
+
+    // ============ EMAILJS SEND OTP FUNCTION ============
+    async function sendOTPEmail(email, otp, type = 'verification') {
+        const templateParams = {
+            to_email: email,
+            to_name: email.split('@')[0],
+            otp_code: otp,
+            year: new Date().getFullYear(),
+            message: `Kode OTP Anda adalah: ${otp}`,
+            subject: type === 'verification' ? 'Verifikasi Akun AuthPlus' : 'Reset Password AuthPlus'
+        };
+        
+        let templateId = type === 'verification' ? EMAILJS_TEMPLATE_OTP : EMAILJS_TEMPLATE_RESET;
+        
+        console.log("📧 Mengirim email ke:", email);
+        console.log("📧 Service ID:", EMAILJS_SERVICE_ID);
+        console.log("📧 Template ID:", templateId);
+        console.log("📧 OTP Code:", otp);
+        
+        try {
+            const response = await emailjs.send(EMAILJS_SERVICE_ID, templateId, templateParams);
+            console.log("✅ Email berhasil dikirim!", response);
+            showAlert(`Kode OTP telah dikirim ke ${email}. Cek inbox/spam!`, 'success');
+            return true;
+        } catch (error) {
+            console.error("❌ Error mengirim email:", error);
+            console.error("Detail error:", error.text);
+            
+            let errorMessage = `Gagal mengirim email: `;
+            if (error.text?.includes('service')) errorMessage += 'Service ID tidak ditemukan! Periksa kembali Service ID.';
+            else if (error.text?.includes('template')) errorMessage += 'Template ID tidak ditemukan! Periksa kembali Template ID.';
+            else if (error.text?.includes('public')) errorMessage += 'Public Key salah! Periksa kembali Public Key.';
+            else errorMessage += error.text || error.message;
+            
+            showAlert(errorMessage, 'error');
+            return false;
+        }
+    }
+
+    // ============ HELPER FUNCTIONS ============
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById('alert');
+        alertDiv.className = `alert ${type}`;
+        alertDiv.innerHTML = message;
+        alertDiv.style.display = 'block';
+        setTimeout(() => alertDiv.style.display = 'none', 4000);
+    }
+
+    function setLoading(buttonId, isLoading) {
+        const btn = document.getElementById(buttonId);
+        if (isLoading) {
+            btn.innerHTML = '<span class="spinner"></span> Memproses...';
+            btn.disabled = true;
+        } else {
+            if (buttonId === 'loginBtn') btn.innerHTML = 'Login';
+            if (buttonId === 'registerBtn') btn.innerHTML = 'Daftar Sekarang';
+            if (buttonId === 'verifyBtn') btn.innerHTML = 'Verifikasi';
+            btn.disabled = false;
+        }
+    }
+
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = input.nextElementSibling;
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    function switchForm(form) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const btns = document.querySelectorAll('.toggle-btn');
+        
+        if (form === 'login') {
+            loginForm.classList.add('active-form');
+            registerForm.classList.remove('active-form');
+            btns[0].classList.add('active');
+            btns[1].classList.remove('active');
+        } else {
+            loginForm.classList.remove('active-form');
+            registerForm.classList.add('active-form');
+            btns[0].classList.remove('active');
+            btns[1].classList.add('active');
+        }
+        document.getElementById('alert').style.display = 'none';
+    }
+
+    function generateOTP() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    function moveToNext(input, index) {
+        if (input.value.length === 1 && index < 5) {
+            document.querySelectorAll('.otp-digit')[index + 1].focus();
+        }
+    }
+
+    function moveToNextReset(input, index) {
+        if (input.value.length === 1 && index < 5) {
+            document.querySelectorAll('.reset-otp-digit')[index + 1].focus();
+        }
+    }
+
+    function closeOTPModal() {
+        document.getElementById('otpModal').style.display = 'none';
+    }
+
+    function closeResetModal() {
+        document.getElementById('resetModal').style.display = 'none';
+    }
+
+    function closeConfirmResetModal() {
+        document.getElementById('confirmResetModal').style.display = 'none';
+        pendingResetEmail = null;
+        resetOTP = null;
+    }
+
+    // ============ REGISTER WITH OTP ============
+    async function handleRegister() {
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+
+        if (!username || username.length < 3) {
+            showAlert('Username minimal 3 karakter!', 'error');
+            return;
+        }
+        if (!email) {
+            showAlert('Email tidak boleh kosong!', 'error');
+            return;
+        }
+        if (!password || password.length < 6) {
+            showAlert('Password minimal 6 karakter!', 'error');
+            return;
+        }
+
+        setLoading('registerBtn', true);
+        
+        pendingUserData = { username, email, password };
+        generatedOTP = generateOTP();
+        
+        const emailSent = await sendOTPEmail(email, generatedOTP, 'verification');
+        
+        if (emailSent) {
+            document.getElementById('otpEmailDisplay').innerText = email;
+            document.getElementById('otpModal').style.display = 'flex';
+            document.querySelectorAll('.otp-digit').forEach((input, idx) => {
+                input.value = '';
+                if(idx === 0) input.focus();
+            });
+        }
+        
+        setLoading('registerBtn', false);
+    }
+
+    async function verifyOTP() {
+        let enteredOTP = '';
+        document.querySelectorAll('.otp-digit').forEach(input => enteredOTP += input.value);
+        
+        if (enteredOTP.length !== 6) {
+            showAlert('Masukkan 6 digit kode OTP!', 'error');
+            return;
+        }
+        
+        if (enteredOTP !== generatedOTP) {
+            showAlert('Kode OTP salah!', 'error');
+            return;
+        }
+        
+        setLoading('verifyBtn', true);
+        
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, pendingUserData.email, pendingUserData.password);
+            const user = userCredential.user;
+            
+            await set(ref(database, `users/${user.uid}`), {
+                username: pendingUserData.username,
+                email: pendingUserData.email,
+                verified: true,
+                createdAt: new Date().toISOString()
+            });
+            
+            showAlert('Registrasi berhasil! Silakan login.', 'success');
+            closeOTPModal();
+            
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            
+            pendingUserData = null;
+            generatedOTP = null;
+            
+            setTimeout(() => switchForm('login'), 1500);
+        } catch (error) {
+            let errorMsg = 'Registrasi gagal! ';
+            if (error.code === 'auth/email-already-in-use') {
+                errorMsg = 'Email sudah terdaftar!';
+            } else {
+                errorMsg += error.message;
+            }
+            showAlert(errorMsg, 'error');
+        } finally {
+            setLoading('verifyBtn', false);
+        }
+    }
+
+    async function resendOTP() {
+        if (pendingUserData && pendingUserData.email) {
+            generatedOTP = generateOTP();
+            await sendOTPEmail(pendingUserData.email, generatedOTP, 'verification');
+        }
+    }
+
+    // ============ LOGIN ============
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            showAlert('Email dan password wajib diisi!', 'error');
+            return;
+        }
+
+        setLoading('loginBtn', true);
+        
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            const snapshot = await get(ref(database, `users/${user.uid}`));
+            let username = email.split('@')[0];
+            if (snapshot.exists()) {
+                username = snapshot.val().username;
+            }
+            
+            localStorage.setItem('auth_session', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                username: username,
+                loginTime: new Date().toISOString()
+            }));
+            
+            showAlert(`Selamat datang, ${username}!`, 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        } catch (error) {
+            let errorMsg = 'Login gagal! ';
+            if (error.code === 'auth/user-not-found') errorMsg = 'Email tidak terdaftar!';
+            else if (error.code === 'auth/wrong-password') errorMsg = 'Password salah!';
+            else errorMsg += error.message;
+            showAlert(errorMsg, 'error');
+        } finally {
+            setLoading('loginBtn', false);
+        }
+    }
+
+    // ============ RESET PASSWORD ============
+    function openResetOTPModal() {
+        document.getElementById('resetModal').style.display = 'flex';
+        document.getElementById('resetEmailInput').value = '';
+    }
+    
+    async function sendResetOTP() {
+        const email = document.getElementById('resetEmailInput').value.trim();
+        
+        if (!email) {
+            showAlert('Masukkan email Anda!', 'error');
+            return;
+        }
+        
+        pendingResetEmail = email;
+        resetOTP = generateOTP();
+        
+        const emailSent = await sendOTPEmail(email, resetOTP, 'reset');
+        
+        if (emailSent) {
+            closeResetModal();
+            document.getElementById('confirmResetModal').style.display = 'flex';
+            document.querySelectorAll('.reset-otp-digit').forEach((input, idx) => {
+                input.value = '';
+                if(idx === 0) input.focus();
+            });
+            document.getElementById('newPassword').value = '';
+        }
+    }
+    
+    async function confirmResetPassword() {
+        let enteredOTP = '';
+        document.querySelectorAll('.reset-otp-digit').forEach(input => enteredOTP += input.value);
+        
+        const newPassword = document.getElementById('newPassword').value;
+        
+        if (enteredOTP.length !== 6) {
+            showAlert('Masukkan 6 digit kode OTP!', 'error');
+            return;
+        }
+        
+        if (enteredOTP !== resetOTP) {
+            showAlert('Kode OTP salah!', 'error');
+            return;
+        }
+        
+        if (!newPassword || newPassword.length < 6) {
+            showAlert('Password baru minimal 6 karakter!', 'error');
+            return;
+        }
+        
+        try {
+            await sendPasswordResetEmail(auth, pendingResetEmail);
+            showAlert('Link reset password telah dikirim ke email Anda!', 'success');
+            closeConfirmResetModal();
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    }
+
+    // Close modals on outside click
+    window.onclick = function(event) {
+        if (event.target === document.getElementById('otpModal')) closeOTPModal();
+        if (event.target === document.getElementById('resetModal')) closeResetModal();
+        if (event.target === document.getElementById('confirmResetModal')) closeConfirmResetModal();
+    }
+    
+    // Expose functions
+    window.switchForm = switchForm;
+    window.togglePassword = togglePassword;
+    window.handleLogin = handleLogin;
+    window.handleRegister = handleRegister;
+    window.verifyOTP = verifyOTP;
+    window.resendOTP = resendOTP;
+    window.openResetOTPModal = openResetOTPModal;
+    window.sendResetOTP = sendResetOTP;
+    window.confirmResetPassword = confirmResetPassword;
+    window.moveToNext = moveToNext;
+    window.moveToNextReset = moveToNextReset;
+    window.closeOTPModal = closeOTPModal;
+    window.closeConfirmResetModal = closeConfirmResetModal;
+    window.closeResetModal = closeResetModal;
+</script>
+</body>
+</html>            border-radius: 28px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+        .input-group input:focus { outline: none; border-color: #667eea; }
+        .input-group input::placeholder { color: rgba(255,255,255,0.4); }
+        .toggle-password {
+            position: absolute; right: 16px; top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255,255,255,0.5);
+        }
+        .submit-btn {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 30px;
+            font-weight: 600; cursor: pointer;
+            margin-top: 8px;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .forgot-link { text-align: right; margin-top: 12px; }
+        .forgot-link a { color: #667eea; text-decoration: none; font-size: 12px; }
+        .alert {
+            padding: 12px 16px; border-radius: 20px;
+            margin-bottom: 20px; font-size: 13px;
+            display: none;
+        }
+        .alert.success { background: rgba(16,185,129,0.2); color: #10b981; border-left: 3px solid #10b981; }
+        .alert.error { background: rgba(239,68,68,0.2); color: #ef4444; border-left: 3px solid #ef4444; }
+        .alert.info { background: rgba(59,130,246,0.2); color: #3b82f6; border-left: 3px solid #3b82f6; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(10px);
+            max-width: 400px; width: 90%;
+            padding: 32px; border-radius: 32px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-content h3 { color: white; margin-bottom: 16px; }
+        .modal-content p { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
+        .otp-inputs {
+            display: flex; gap: 12px;
+            justify-content: center; margin-bottom: 24px;
+        }
+        .otp-inputs input {
+            width: 55px; height: 65px;
+            text-align: center; font-size: 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+        .otp-inputs input:focus { outline: none; border-color: #667eea; }
+        .resend-link { margin-top: 16px; font-size: 12px; }
+        .resend-link a { color: #667eea; cursor: pointer; }
+        .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid white; border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 480px) {
+            .glass-card { padding: 28px 22px; }
+            .otp-inputs input { width: 45px; height: 55px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass-card">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+            <h2>AuthPlus</h2>
+            <p>Secure • Real Email OTP • Premium</p>
+        </div>
+
+        <div class="toggle-buttons">
+            <button class="toggle-btn active" onclick="switchForm('login')">Login</button>
+            <button class="toggle-btn" onclick="switchForm('register')">Register</button>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm" class="form active-form">
+            <form onsubmit="event.preventDefault(); handleLogin()">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="Email Address">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Password">
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword')"></i>
+                </div>
+                <div class="forgot-link">
+                    <a href="#" onclick="openResetOTPModal()">Lupa Password?</a>
+                </div>
+                <button type="submit" class="submit-btn" id="loginBtn">Login</button>
+            </form>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerForm" class="form">
+            <form onsubmit="event.preventDefault(); handleRegister()">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="regUsername" placeholder="Username">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="regEmail" placeholder="Email Address">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="regPassword" placeholder="Password">
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i>
+                </div>
+                <button type="submit" class="submit-btn" id="registerBtn">Daftar Sekarang</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- OTP MODAL -->
+<div id="otpModal" class="modal">
+    <div class="modal-content">
+        <h3>Verifikasi Email</h3>
+        <p>Kami telah mengirim kode OTP ke <strong id="otpEmailDisplay"></strong></p>
+        <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 0)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 1)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 2)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 3)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 4)">
+            <input type="text" maxlength="1" class="otp-digit" oninput="moveToNext(this, 5)">
+        </div>
+        <button class="submit-btn" id="verifyBtn" onclick="verifyOTP()">Verifikasi</button>
+        <div class="resend-link">
+            Tidak menerima kode? <a onclick="resendOTP()">Kirim Ulang</a>
+        </div>
+    </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div id="resetModal" class="modal">
+    <div class="modal-content">
+        <h3>Reset Password</h3>
+        <p>Masukkan email Anda untuk menerima kode OTP reset password</p>
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="resetEmailInput" placeholder="Email Address">
+        </div>
+        <button class="submit-btn" onclick="sendResetOTP()">Kirim Kode OTP</button>
+    </div>
+</div>
+
+<!-- CONFIRM RESET MODAL -->
+<div id="confirmResetModal" class="modal">
+    <div class="modal-content">
+        <h3>Reset Password</h3>
+        <p>Masukkan kode OTP dan password baru</p>
+        <div class="otp-inputs">
+            <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 0)">
+            <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 1)">
+            <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 2)">
+            <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 3)">
+            <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 4)">
+            <input type="text" maxlength="1" class="reset-otp-digit" oninput="moveToNextReset(this, 5)">
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="newPassword" placeholder="Password Baru">
+        </div>
+        <button class="submit-btn" onclick="confirmResetPassword()">Reset Password</button>
+    </div>
+</div>
+
+<script>
     // ============ EMAILJS CONFIGURATION (SUDAH DIISI) ============
     emailjs.init("XHGUVte16VmyTtjTO");
     
